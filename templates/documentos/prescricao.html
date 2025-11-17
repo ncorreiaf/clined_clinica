@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescrição Médica - {{ paciente.nome }}</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+            color: #000;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .clinic-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .header-info {
+            font-size: 10px;
+            line-height: 1.2;
+        }
+        
+        .document-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-decoration: underline;
+        }
+        
+        .patient-info {
+            margin-bottom: 20px;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        
+        .patient-info h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .prescription-content {
+            min-height: 300px;
+            margin-bottom: 30px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            background: #fafafa;
+        }
+        
+        .prescription-content h4 {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        
+        .prescription-text {
+            white-space: pre-line;
+            line-height: 1.8;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 300px;
+            margin: 50px auto 10px auto;
+        }
+        
+        .professional-info {
+            font-size: 11px;
+        }
+        
+        .date-location {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        
+        @media print {
+            body {
+                padding: 10px;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botão de impressão (oculto na impressão) -->
+    <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer;">
+            Imprimir Prescrição
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; cursor: pointer; margin-left: 10px;">
+            Fechar
+        </button>
+    </div>
+
+    <!-- Cabeçalho da clínica -->
+    <div class="header">
+        <div class="clinic-name">{{ config.CLINIC_NAME }}</div>
+        <div class="header-info">
+            Clínica de Terapias Especializadas<br>
+            Endereço da Clínica - Telefone: (00) 0000-0000<br>
+            Email: contato@clinicaspa.com.br
+        </div>
+    </div>
+
+    <!-- Título do documento -->
+    <div class="document-title">PRESCRIÇÃO MÉDICA</div>
+
+    <!-- Data e local -->
+    <div class="date-location">
+        Data: {{ prontuario.data_atendimento.strftime('%d de %B de %Y') }}
+    </div>
+
+    <!-- Informações do paciente -->
+    <div class="patient-info">
+        <h4>DADOS DO PACIENTE</h4>
+        <div class="info-row">
+            <span><strong>Nome:</strong> {{ paciente.nome }}</span>
+            <span><strong>CPF:</strong> {{ paciente.cpf }}</span>
+        </div>
+        {% if paciente.data_nascimento %}
+        <div class="info-row">
+            <span><strong>Data de Nascimento:</strong> {{ paciente.data_nascimento.strftime('%d/%m/%Y') }}</span>
+            <span><strong>Idade:</strong> {{ (prontuario.data_atendimento.date() - paciente.data_nascimento).days // 365 }} anos</span>
+        </div>
+        {% endif %}
+        <div class="info-row">
+            <span><strong>Telefone:</strong> {{ paciente.telefone or 'Não informado' }}</span>
+            <span><strong>Data do Atendimento:</strong> {{ prontuario.data_atendimento.strftime('%d/%m/%Y') }}</span>
+        </div>
+    </div>
+
+    <!-- Diagnóstico (se disponível) -->
+    {% if prontuario.diagnostico %}
+    <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+        <h4 style="margin: 0 0 10px 0;">DIAGNÓSTICO/AVALIAÇÃO</h4>
+        <div style="white-space: pre-line;">{{ prontuario.diagnostico }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Conteúdo da prescrição -->
+    <div class="prescription-content">
+        <h4>PRESCRIÇÃO/CONDUTA TERAPÊUTICA</h4>
+        <div class="prescription-text">
+            {% if prontuario.prescricao %}
+{{ prontuario.prescricao }}
+            {% else %}
+[Prescrição a ser preenchida]
+
+1. Medicamento/Orientação:
+   _________________________________________________
+   
+2. Posologia/Frequência:
+   _________________________________________________
+   
+3. Duração do tratamento:
+   _________________________________________________
+   
+4. Observações especiais:
+   _________________________________________________
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Observações adicionais -->
+    {% if prontuario.observacoes %}
+    <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+        <h4 style="margin: 0 0 10px 0;">OBSERVAÇÕES</h4>
+        <div style="white-space: pre-line;">{{ prontuario.observacoes }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Rodapé com assinatura -->
+    <div class="footer">
+        <div class="signature-line"></div>
+        <div class="professional-info">
+            {% if prontuario.profissional_nome %}
+            <strong>{{ prontuario.profissional_nome }}</strong><br>
+            {% endif %}
+            {% if prontuario.especialidade %}
+            {{ prontuario.especialidade }}<br>
+            {% endif %}
+            Registro Profissional: [Número do Registro]
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 10px; color: #666;">
+            <p><strong>IMPORTANTE:</strong> Esta prescrição é válida em todo território nacional. 
+            Siga rigorosamente as orientações médicas. Em caso de dúvidas, entre em contato com a clínica.</p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-print quando a página carregar (opcional)
+        // window.onload = function() { window.print(); }
+    </script>
+</body>
+</html>

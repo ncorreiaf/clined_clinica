@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket Médio - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-calculator text-primary me-2"></i>
+                Ticket Médio por Profissional
+            </h2>
+            <a href="{{ url_for('relatorios.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="data_inicio" class="form-label">Data Início</label>
+                        <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="data_fim" class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ data_fim }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="mb-2">Período: {{ data_inicio }} a {{ data_fim }}</h6>
+                <small class="text-muted">Análise de ticket médio detalhada</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ticket Médio por Profissional -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Análise de Ticket Médio
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if ticket_medio_profissional %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Profissional</th>
+                                <th>Especialidade</th>
+                                <th>Atendimentos</th>
+                                <th>Faturamento Total</th>
+                                <th>Ticket Médio</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set ticket_medio_geral = (ticket_medio_profissional|sum(attribute=3) or 0) / (ticket_medio_profissional|sum(attribute=2) or 1) %}
+                            {% for item in ticket_medio_profissional %}
+                            <tr>
+                                <td><strong>{{ item[0] }}</strong></td>
+                                <td>{{ item[1] }}</td>
+                                <td>{{ item[2] }}</td>
+                                <td><strong class="text-success">R$ {{ "%.2f"|format(item[3] or 0) }}</strong></td>
+                                <td>
+                                    <strong class="text-primary">R$ {{ "%.2f"|format(item[4] or 0) }}</strong>
+                                </td>
+                                <td>
+                                    {% set performance = ((item[4] or 0) / ticket_medio_geral * 100) if ticket_medio_geral > 0 else 0 %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                            <div class="progress-bar {% if performance >= 100 %}bg-success{% elif performance >= 80 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                 style="width: {{ performance|round(1) }}%">
+                                            </div>
+                                        </div>
+                                        <span class="small">{{ performance|round(1) }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-secondary">
+                            <tr>
+                                <th colspan="2">TOTAL GERAL</th>
+                                <th>{{ ticket_medio_profissional|sum(attribute=2) }}</th>
+                                <th><strong class="text-success">R$ {{ "%.2f"|format(ticket_medio_profissional|sum(attribute=3) or 0) }}</strong></th>
+                                <th><strong class="text-primary">R$ {{ "%.2f"|format(ticket_medio_geral) }}</strong></th>
+                                <th>-</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-calculator fa-3x mb-3"></i>
+                    <p>Nenhum dado encontrado para o período selecionado.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insights -->
+{% if ticket_medio_profissional %}
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-trophy me-2"></i>
+                    Maior Ticket Médio
+                </h6>
+            </div>
+            <div class="card-body">
+                {% set melhor = ticket_medio_profissional|max(attribute=4) %}
+                <h5 class="text-success">{{ melhor[0] }}</h5>
+                <p class="mb-0">R$ {{ "%.2f"|format(melhor[4] or 0) }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Ticket Médio Geral
+                </h6>
+            </div>
+            <div class="card-body">
+                <h5 class="text-info">R$ {{ "%.2f"|format(ticket_medio_geral) }}</h5>
+                <p class="mb-0">Média de todos os profissionais</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Total de Atendimentos
+                </h6>
+            </div>
+            <div class="card-body">
+                <h5 class="text-primary">{{ ticket_medio_profissional|sum(attribute=2) }}</h5>
+                <p class="mb-0">No período selecionado</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

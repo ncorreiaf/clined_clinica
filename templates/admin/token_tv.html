@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Token de Acesso TV - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block page_title %}Token de Acesso TV{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tv me-2"></i>
+                        Configuração do Painel de TV
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Como funciona:</strong> O painel de TV pode ser acessado de duas formas:
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Usuários logados:</strong> Podem acessar diretamente pelo menu "Painel de TV"</li>
+                            <li><strong>TVs físicas:</strong> Use a URL completa abaixo com o token de acesso</li>
+                        </ul>
+                    </div>
+
+                    {% if token_tv %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-secondary mb-3">
+                                <i class="fas fa-key me-2"></i>
+                                Token de Acesso
+                            </h6>
+                            <div class="input-group mb-3">
+                                <input type="text"
+                                       class="form-control font-monospace"
+                                       id="tokenInput"
+                                       value="{{ token_tv }}"
+                                       readonly>
+                                <button class="btn btn-outline-secondary"
+                                        type="button"
+                                        onclick="copiarToken()">
+                                    <i class="fas fa-copy me-1"></i>
+                                    Copiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-secondary mb-3">
+                                <i class="fas fa-link me-2"></i>
+                                URL Completa para TV
+                            </h6>
+                            <div class="input-group mb-3">
+                                <input type="text"
+                                       class="form-control"
+                                       id="urlInput"
+                                       value="{{ url_completa }}"
+                                       readonly>
+                                <button class="btn btn-outline-secondary"
+                                        type="button"
+                                        onclick="copiarUrl()">
+                                    <i class="fas fa-copy me-1"></i>
+                                    Copiar
+                                </button>
+                                <a href="{{ url_completa }}"
+                                   class="btn btn-primary"
+                                   target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i>
+                                    Abrir
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Instruções para configurar a TV:</strong>
+                        <ol class="mb-0 mt-2">
+                            <li>Copie a URL completa acima</li>
+                            <li>Abra o navegador na TV (Chrome, Firefox, etc.)</li>
+                            <li>Cole a URL na barra de endereços</li>
+                            <li>Pressione F11 para tela cheia</li>
+                            <li>O painel atualizará automaticamente a cada 5 segundos</li>
+                        </ol>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-secondary mb-3">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Segurança
+                            </h6>
+                            <p class="text-muted mb-3">
+                                Se você suspeitar que o token foi comprometido ou deseja renovar o acesso,
+                                gere um novo token. <strong>O token antigo será invalidado imediatamente.</strong>
+                            </p>
+                            <form method="POST" action="{{ url_for('admin.gerar_novo_token_tv') }}" onsubmit="return confirm('Tem certeza? O token atual será invalidado e a TV precisará ser reconfigurada.')">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-sync-alt me-1"></i>
+                                    Gerar Novo Token
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Erro:</strong> Nenhum token de TV disponível. Por favor, crie um usuário do tipo "TV" primeiro.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Perguntas Frequentes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                                    Como usuários normais acessam o painel?
+                                </button>
+                            </h2>
+                            <div id="collapse1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Usuários logados (admin, médico, etc.) podem acessar diretamente pelo menu lateral "Painel > Painel de TV".
+                                    Não é necessário usar o token para usuários autenticados.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                                    Quando devo usar o token?
+                                </button>
+                            </h2>
+                            <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Use o token apenas para TVs físicas no consultório ou recepção que ficarão exibindo o painel
+                                    permanentemente, sem necessidade de login manual.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                                    O painel atualiza automaticamente?
+                                </button>
+                            </h2>
+                            <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Sim! O painel atualiza automaticamente:
+                                    <ul>
+                                        <li>Relógio: a cada 1 segundo</li>
+                                        <li>Atendimentos: a cada 5 segundos</li>
+                                        <li>Estatísticas: a cada 10 segundos</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
+                                    Posso usar o mesmo token em várias TVs?
+                                </button>
+                            </h2>
+                            <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Sim! O mesmo token pode ser usado em quantas TVs você precisar.
+                                    Todas exibirão as mesmas informações em tempo real.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copiarToken() {
+    const input = document.getElementById('tokenInput');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value);
+
+    const btn = event.target.closest('button');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check me-1"></i> Copiado!';
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-success');
+
+    setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+
+function copiarUrl() {
+    const input = document.getElementById('urlInput');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value);
+
+    const btn = event.target.closest('button');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check me-1"></i> Copiado!';
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-success');
+
+    setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+</script>
+
+<style>
+.font-monospace {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 8px;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+}
+</style>
+{% endblock %}

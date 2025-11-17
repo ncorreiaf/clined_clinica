@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Fila de Espera - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Cabeçalho da página -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-users text-warning me-2"></i>
+                Fila de Espera - Hoje
+            </h2>
+            <div class="btn-group">
+                <a href="{{ url_for('agendamento.lista_agendamentos') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-calendar-alt me-1"></i>Ver Agendamentos
+                </a>
+                <button class="btn btn-success" onclick="location.reload()">
+                    <i class="fas fa-sync me-1"></i>Atualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumo da fila -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Agendados</h6>
+                        <h4>{{ agendamentos|selectattr('0.status', 'equalto', 'agendado')|list|length }}</h4>
+                    </div>
+                    <i class="fas fa-clock fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Em Espera</h6>
+                        <h4>{{ agendamentos|selectattr('0.status', 'equalto', 'em_espera')|list|length }}</h4>
+                    </div>
+                    <i class="fas fa-hourglass-half fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Em Atendimento</h6>
+                        <h4>{{ agendamentos|selectattr('0.status', 'equalto', 'em_atendimento')|list|length }}</h4>
+                    </div>
+                    <i class="fas fa-user-md fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Finalizados</h6>
+                        <h4>{{ agendamentos|selectattr('0.status', 'equalto', 'finalizado')|list|length }}</h4>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fila de espera por status -->
+<div class="row">
+    <!-- Agendados -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    Aguardando Check-in
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% set agendados = agendamentos|selectattr('0.status', 'equalto', 'agendado')|list %}
+                {% if agendados %}
+                <div class="list-group list-group-flush">
+                    {% for agendamento, paciente, profissional in agendados %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ paciente.nome }}</h6>
+                                <p class="mb-1">
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - 
+                                    {{ profissional.nome }}
+                                </p>
+                                <small class="text-muted">{{ agendamento.servico }}</small>
+                            </div>
+                            <div class="btn-group-vertical btn-group-sm">
+                                <a href="{{ url_for('agendamento.checkin', agendamento_id=agendamento.id) }}" 
+                                   class="btn btn-success">
+                                    <i class="fas fa-check me-1"></i>Check-in
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>Nenhum paciente aguardando check-in</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Em Espera -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-hourglass-half me-2"></i>
+                    Fila de Espera
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% set em_espera = agendamentos|selectattr('0.status', 'equalto', 'em_espera')|list %}
+                {% if em_espera %}
+                <div class="list-group list-group-flush">
+                    {% for agendamento, paciente, profissional in em_espera %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ paciente.nome }}</h6>
+                                <p class="mb-1">
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - 
+                                    {{ profissional.nome }}
+                                </p>
+                                <small class="text-muted">
+                                    Check-in: {{ agendamento.data_checkin.strftime('%H:%M') if agendamento.data_checkin }}
+                                </small>
+                            </div>
+                            <div class="btn-group-vertical btn-group-sm">
+                                <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='em_atendimento') }}" 
+                                   class="btn btn-success">
+                                    <i class="fas fa-play me-1"></i>Iniciar
+                                </a>
+                                <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}" 
+                                   class="btn btn-info">
+                                    <i class="fas fa-file-medical me-1"></i>Prontuário
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>Nenhum paciente na fila de espera</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Em Atendimento -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-md me-2"></i>
+                    Em Atendimento
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% set em_atendimento = agendamentos|selectattr('0.status', 'equalto', 'em_atendimento')|list %}
+                {% if em_atendimento %}
+                <div class="list-group list-group-flush">
+                    {% for agendamento, paciente, profissional in em_atendimento %}
+                    <div class="list-group-item list-group-item-success">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ paciente.nome }}</h6>
+                                <p class="mb-1">
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - 
+                                    {{ profissional.nome }}
+                                </p>
+                                <small class="text-muted">{{ agendamento.servico }}</small>
+                            </div>
+                            <div class="btn-group-vertical btn-group-sm">
+                                <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='finalizado') }}" 
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-stop me-1"></i>Finalizar
+                                </a>
+                                <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}" 
+                                   class="btn btn-info">
+                                    <i class="fas fa-edit me-1"></i>Prontuário
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>Nenhum atendimento em andamento</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Finalizados -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Atendimentos Finalizados
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% set finalizados = agendamentos|selectattr('0.status', 'equalto', 'finalizado')|list %}
+                {% if finalizados %}
+                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                    {% for agendamento, paciente, profissional in finalizados %}
+                    <div class="list-group-item list-group-item-secondary">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ paciente.nome }}</h6>
+                                <p class="mb-1">
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - 
+                                    {{ profissional.nome }}
+                                </p>
+                                <small class="text-muted">{{ agendamento.servico }} - Finalizado</small>
+                            </div>
+                            <div class="btn-group-vertical btn-group-sm">
+                                <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}"
+                                   class="btn btn-info btn-sm">
+                                    <i class="fas fa-file-medical me-1"></i>Prontuário
+                                </a>
+                                <button class="btn btn-warning btn-sm"
+                                        onclick="copiarLinkAvaliacao({{ agendamento.id }})">
+                                    <i class="fas fa-star me-1"></i>Link NPS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>Nenhum atendimento finalizado hoje</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copiarLinkAvaliacao(agendamentoId) {
+    const link = window.location.origin + '/relatorios/avaliacao-publica/' + agendamentoId;
+
+    // Copiar para clipboard
+    navigator.clipboard.writeText(link).then(function() {
+        // Mostrar feedback visual
+        const btn = event.target.closest('button');
+        const textoOriginal = btn.innerHTML;
+
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Copiado!';
+        btn.classList.remove('btn-warning');
+        btn.classList.add('btn-success');
+
+        setTimeout(function() {
+            btn.innerHTML = textoOriginal;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+        }, 2000);
+    }).catch(function(err) {
+        alert('Erro ao copiar link: ' + err);
+    });
+}
+
+// Auto-refresh da página a cada 30 segundos
+setInterval(function() {
+    // Só atualiza se não há modais abertos ou formulários sendo preenchidos
+    if (!document.querySelector('.modal.show') && document.activeElement.tagName !== 'INPUT') {
+        location.reload();
+    }
+}, 30000); // 30 segundos
+
+// Notificação sonora para novos pacientes em espera (simulação)
+document.addEventListener('DOMContentLoaded', function() {
+    const emEspera = document.querySelectorAll('.list-group-item-warning').length;
+    if (emEspera > 0) {
+        console.log(`${emEspera} paciente(s) aguardando atendimento`);
+    }
+});
+</script>
+{% endblock %}

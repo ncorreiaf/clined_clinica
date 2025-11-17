@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Agendamentos - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Cabeçalho da página -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                Agendamentos do Dia
+            </h2>
+            <div class="btn-group">
+                <a href="{{ url_for('agendamento.agendar') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Novo Agendamento
+                </a>
+                <a href="{{ url_for('agendamento.fila_espera') }}" class="btn btn-outline-warning">
+                    <i class="fas fa-users me-1"></i>Fila de Espera
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtro por data -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="d-flex align-items-end gap-3">
+                    <div class="flex-grow-1">
+                        <label for="data" class="form-label">Filtrar por Data</label>
+                        <input type="date" class="form-control" id="data" name="data" value="{{ data_filtro }}">
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="mb-2">Total de agendamentos: <span class="badge bg-primary">{{ agendamentos|length }}</span></h6>
+                <small class="text-muted">Data selecionada: {{ data_filtro }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de agendamentos -->
+<div class="row">
+    <div class="col-12">
+        {% if agendamentos %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Agendamentos - {{ data_filtro }}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Horário</th>
+                                <th>Paciente</th>
+                                <th>Profissional</th>
+                                <th>Serviço</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agendamento, paciente, profissional in agendamentos %}
+                            <tr class="agendamento-row" data-status="{{ agendamento.status }}">
+                                <td>
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ agendamento.data_agendamento.strftime('%d/%m/%Y') }}</small>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ paciente.nome }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ paciente.telefone or 'Sem telefone' }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ profissional.nome }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ profissional.especialidade }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ agendamento.servico }}</span>
+                                    {% if agendamento.observacoes %}
+                                    <br>
+                                    <small class="text-muted">{{ agendamento.observacoes[:50] }}...</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge status-badge" data-status="{{ agendamento.status }}">
+                                        {% if agendamento.status == 'agendado' %}
+                                            <i class="fas fa-clock me-1"></i>Agendado
+                                        {% elif agendamento.status == 'em_espera' %}
+                                            <i class="fas fa-hourglass-half me-1"></i>Em Espera
+                                        {% elif agendamento.status == 'em_atendimento' %}
+                                            <i class="fas fa-user-md me-1"></i>Em Atendimento
+                                        {% elif agendamento.status == 'finalizado' %}
+                                            <i class="fas fa-check-circle me-1"></i>Finalizado
+                                        {% elif agendamento.status == 'faltou' %}
+                                            <i class="fas fa-times-circle me-1"></i>Faltou
+                                        {% endif %}
+                                    </span>
+                                    {% if agendamento.data_checkin %}
+                                    <br>
+                                    <small class="text-muted">Check-in: {{ agendamento.data_checkin.strftime('%H:%M') }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group-vertical btn-group-sm">
+                                        {% if agendamento.status == 'agendado' %}
+                                        <a href="{{ url_for('agendamento.checkin', agendamento_id=agendamento.id) }}" 
+                                           class="btn btn-success btn-sm">
+                                            <i class="fas fa-check me-1"></i>Check-in
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if agendamento.status in ['em_espera', 'agendado'] %}
+                                        <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='em_atendimento') }}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-play me-1"></i>Iniciar
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if agendamento.status == 'em_atendimento' %}
+                                        <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='finalizado') }}" 
+                                           class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-stop me-1"></i>Finalizar
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if agendamento.status not in ['finalizado', 'faltou'] %}
+                                        <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='faltou') }}" 
+                                           class="btn btn-danger btn-sm">
+                                            <i class="fas fa-times me-1"></i>Faltou
+                                        </a>
+                                        {% endif %}
+                                        
+                                        <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}"
+                                           class="btn btn-info btn-sm">
+                                            <i class="fas fa-file-medical me-1"></i>Prontuário
+                                        </a>
+
+                                        <a href="{{ url_for('documentos.gerar_recibo', agendamento_id=agendamento.id) }}"
+                                           class="btn btn-success btn-sm" target="_blank">
+                                            <i class="fas fa-receipt me-1"></i>Recibo
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Mensagem quando não há agendamentos -->
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Nenhum agendamento encontrado</h4>
+                <p class="text-muted mb-4">Não há agendamentos para a data selecionada: {{ data_filtro }}</p>
+                <a href="{{ url_for('agendamento.agendar') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Criar Primeiro Agendamento
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Estilos para status dos agendamentos */
+.status-badge[data-status="agendado"] {
+    background-color: #0d6efd !important;
+}
+
+.status-badge[data-status="em_espera"] {
+    background-color: #fd7e14 !important;
+}
+
+.status-badge[data-status="em_atendimento"] {
+    background-color: #198754 !important;
+}
+
+.status-badge[data-status="finalizado"] {
+    background-color: #6c757d !important;
+}
+
+.status-badge[data-status="faltou"] {
+    background-color: #dc3545 !important;
+}
+
+/* Efeito visual nas linhas da tabela baseado no status */
+.agendamento-row[data-status="em_atendimento"] {
+    background-color: #d1eddd !important;
+}
+
+.agendamento-row[data-status="faltou"] {
+    background-color: #f8d7da !important;
+}
+
+.agendamento-row:hover {
+    background-color: #f8f9fa !important;
+}
+</style>
+{% endblock %}

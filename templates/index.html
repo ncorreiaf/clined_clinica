@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ config.CLINIC_NAME }}{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section fade-in-up">
+    <div class="d-flex align-items-center">
+        <div>
+            <h1 class="hero-title">Bem-vindo ao {{ config.CLINIC_NAME }}</h1>
+            <p class="hero-subtitle">Dashboard Principal</p>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.1s">
+            <div class="stats-card-icon primary">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stats-card-value">{{ agendamentos_hoje or 0 }}</div>
+            <div class="stats-card-label">Agendamentos Hoje</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.2s">
+            <div class="stats-card-icon warning">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div class="stats-card-value">{{ em_espera or 0 }}</div>
+            <div class="stats-card-label">Em Espera</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.3s">
+            <div class="stats-card-icon success">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stats-card-value">{{ atendimentos or 0 }}</div>
+            <div class="stats-card-label">Atendimentos</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.4s">
+            <div class="stats-card-icon info">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stats-card-value">{{ finalizados or 0 }}</div>
+            <div class="stats-card-label">Finalizados</div>
+        </div>
+    </div>
+</div>
+
+<!-- Cards de Módulos -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.5s">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Módulo de Agendamentos
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Gerencie agendamentos, consultas e controle a fila de espera.
+                    Realize check-ins e acompanhe o status dos atendimentos.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('agendamento.agendar') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Novo Agendamento
+                    </a>
+                    <a href="{{ url_for('agendamento.lista_agendamentos') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i>
+                        Ver Agendamentos
+                    </a>
+                    <a href="{{ url_for('agendamento.fila_espera') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-users"></i>
+                        Fila de Espera
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.6s">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-medical me-2"></i>
+                    Prontuário Eletrônico
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Acesse e gerencie prontuários eletrônicos dos pacientes.
+                    Gere documentos médicos e mantenha histórico de atendimentos.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('prontuario.lista_pacientes') }}" class="btn btn-success">
+                        <i class="fas fa-user-injured"></i>
+                        Lista de Pacientes
+                    </a>
+                    <a href="{{ url_for('prontuario.lista_pacientes') }}" class="btn btn-outline-success">
+                        <i class="fas fa-search"></i>
+                        Buscar Prontuário
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.7s">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-dollar-sign me-2"></i>
+                    Módulo Financeiro
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Controle financeiro completo com contas a pagar e receber,
+                    fluxo de caixa e gestão de repasses aos profissionais.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('financeiro.dashboard') }}" class="btn btn-warning">
+                        <i class="fas fa-chart-line"></i>
+                        Dashboard Financeiro
+                    </a>
+                    <a href="{{ url_for('financeiro.contas_receber') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-arrow-up"></i>
+                        Contas a Receber
+                    </a>
+                    <a href="{{ url_for('financeiro.fluxo_caixa') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-exchange-alt"></i>
+                        Fluxo de Caixa
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.8s">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Relatórios e Indicadores
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Dashboards gerenciais, indicadores de performance,
+                    relatórios de faturamento e avaliação de satisfação (NPS).
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('relatorios.dashboard') }}" class="btn btn-info">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard Gerencial
+                    </a>
+                    <a href="{{ url_for('relatorios.faturamento') }}" class="btn btn-outline-info">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Relatório de Faturamento
+                    </a>
+                    <a href="{{ url_for('relatorios.nps') }}" class="btn btn-outline-info">
+                        <i class="fas fa-star"></i>
+                        Avaliação NPS
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ações Rápidas -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card fade-in-up" style="animation-delay: 0.7s">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Ações Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('agendamento.agendar') }}" class="btn btn-outline-primary btn-lg w-100">
+                            <i class="fas fa-plus mb-2 d-block"></i>
+                            Novo Agendamento
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-primary btn-lg w-100" onclick="window.print()">
+                            <i class="fas fa-print mb-2 d-block"></i>
+                            Imprimir Lista
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('agendamento.fila_espera') }}" class="btn btn-outline-primary btn-lg w-100">
+                            <i class="fas fa-eye mb-2 d-block"></i>
+                            Ver Fila
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-primary btn-lg w-100" onclick="location.reload()">
+                            <i class="fas fa-sync mb-2 d-block"></i>
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

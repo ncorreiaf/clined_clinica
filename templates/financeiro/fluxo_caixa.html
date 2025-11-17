@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Fluxo de Caixa - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-exchange-alt text-primary me-2"></i>
+                Fluxo de Caixa
+            </h2>
+            <a href="{{ url_for('financeiro.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="data_inicio" class="form-label">Data Início</label>
+                        <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="data_fim" class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ data_fim }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="mb-2">Período: {{ data_inicio }} a {{ data_fim }}</h6>
+                <small class="text-muted">{{ movimentos|length }} movimentações</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumo -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-arrow-up me-2"></i>
+                    Total de Entradas
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-success">R$ {{ "%.2f"|format(total_entradas) }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-arrow-down me-2"></i>
+                    Total de Saídas
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-danger">R$ {{ "%.2f"|format(total_saidas) }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-balance-scale me-2"></i>
+                    Saldo do Período
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="{% if saldo >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    R$ {{ "%.2f"|format(saldo) }}
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Movimentações -->
+<div class="row">
+    <div class="col-12">
+        {% if movimentos %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Movimentações do Período
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Categoria</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Forma Pagamento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movimento in movimentos %}
+                            <tr>
+                                <td>{{ movimento.data_movimento.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    {% if movimento.tipo == 'entrada' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-arrow-up me-1"></i>Entrada
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-arrow-down me-1"></i>Saída
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ movimento.categoria }}</span>
+                                </td>
+                                <td>{{ movimento.descricao }}</td>
+                                <td>
+                                    <strong class="{% if movimento.tipo == 'entrada' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if movimento.tipo == 'entrada' %}+{% else %}-{% endif %}R$ {{ "%.2f"|format(movimento.valor) }}
+                                    </strong>
+                                </td>
+                                <td>{{ movimento.forma_pagamento or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Nenhuma movimentação encontrada</h4>
+                <p class="text-muted mb-4">Não há movimentações para o período selecionado.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

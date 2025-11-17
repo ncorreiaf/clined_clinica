@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Recibo - {{ paciente.nome }} - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between mb-3 no-print">
+                <h3><i class="fas fa-receipt"></i> Recibo de Pagamento</h3>
+                <div>
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <a href="{{ url_for('agendamento.lista_agendamentos') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documento para impressão -->
+    <div class="card documento-impresso">
+        <div class="card-body p-5">
+            <!-- Cabeçalho -->
+            <div class="text-center mb-4 pb-3 border-bottom">
+                <h2 class="mb-1">{{ clinic_name }}</h2>
+                <p class="mb-0"><strong>CNPJ:</strong> {{ clinic_cnpj }}</p>
+            </div>
+
+            <h4 class="text-center mb-4">RECIBO DE PAGAMENTO</h4>
+
+            {% if recibo %}
+            <!-- Recibo já salvo -->
+            <div class="mb-3">
+                <p class="text-end"><strong>Nº do Recibo:</strong> {{ recibo.numero_recibo }}</p>
+                <p class="text-end"><strong>Data de Emissão:</strong> {{ recibo.data_emissao.strftime('%d/%m/%Y') }}</p>
+            </div>
+
+            <div class="mb-4 p-3 bg-light">
+                <h5>Dados do Paciente</h5>
+                <p class="mb-1"><strong>Nome:</strong> {{ paciente.nome }}</p>
+                <p class="mb-1"><strong>CPF:</strong> {{ paciente.cpf }}</p>
+                {% if paciente.telefone %}
+                <p class="mb-0"><strong>Telefone:</strong> {{ paciente.telefone }}</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-4 p-4 border">
+                <h5>Descrição do Serviço</h5>
+                <p class="mb-3">{{ recibo.descricao_servico }}</p>
+
+                <div class="row mt-4">
+                    <div class="col-6">
+                        <p class="mb-1"><strong>Forma de Pagamento:</strong></p>
+                        <p class="fs-5">{{ recibo.forma_pagamento }}</p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="mb-1"><strong>Valor Total:</strong></p>
+                        <p class="fs-3 text-success"><strong>R$ {{ "%.2f"|format(recibo.valor) }}</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <p class="mb-0" style="text-align: justify;">
+                    Recebi de <strong>{{ paciente.nome }}</strong>, CPF <strong>{{ paciente.cpf }}</strong>,
+                    a quantia de <strong>R$ {{ "%.2f"|format(recibo.valor) }}</strong>
+                    referente ao(s) serviço(s) acima descrito(s).
+                </p>
+            </div>
+
+            {% else %}
+            <!-- Formulário para criar recibo -->
+            <form method="POST" action="{{ url_for('documentos.salvar_recibo', agendamento_id=agendamento.id) }}" class="no-print">
+                <div class="mb-4 p-3 bg-light">
+                    <h5>Dados do Paciente</h5>
+                    <p class="mb-1"><strong>Nome:</strong> {{ paciente.nome }}</p>
+                    <p class="mb-1"><strong>CPF:</strong> {{ paciente.cpf }}</p>
+                    {% if paciente.telefone %}
+                    <p class="mb-0"><strong>Telefone:</strong> {{ paciente.telefone }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Serviço Realizado:</strong></label>
+                    <input type="text" class="form-control" value="{{ agendamento.servico }}" readonly>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="valor" class="form-label"><strong>Valor (R$):</strong></label>
+                        <input type="number" step="0.01" class="form-control" id="valor" name="valor" required
+                               placeholder="0.00" min="0">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="forma_pagamento" class="form-label"><strong>Forma de Pagamento:</strong></label>
+                        <select class="form-select" id="forma_pagamento" name="forma_pagamento" required>
+                            <option value="">Selecione...</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Cartão de Débito">Cartão de Débito</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="PIX">PIX</option>
+                            <option value="Transferência Bancária">Transferência Bancária</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Gerar Recibo
+                </button>
+            </form>
+            {% endif %}
+
+            <!-- Assinatura -->
+            <div class="mt-5 pt-5 text-center">
+                <p class="mb-1">{{ clinic_name }}</p>
+                <div class="assinatura-linha mb-2"></div>
+                <p class="mb-0"><small>Assinatura</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .documento-impresso {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    body {
+        background: white !important;
+    }
+}
+
+.assinatura-linha {
+    width: 300px;
+    margin: 0 auto;
+    border-top: 1px solid #000;
+}
+</style>
+{% endblock %}

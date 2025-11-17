@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Avaliação NPS - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-star text-warning me-2"></i>
+                Avaliação de Satisfação (NPS)
+            </h2>
+            <a href="{{ url_for('relatorios.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="data_inicio" class="form-label">Data Início</label>
+                        <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="data_fim" class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ data_fim }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="mb-2">Período: {{ data_inicio }} a {{ data_fim }}</h6>
+                <small class="text-muted">{{ total_avaliacoes }} avaliações coletadas</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Score NPS Geral -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-thumbs-up me-2"></i>
+                    Promotores
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-success">{{ promotores }}</h3>
+                <small class="text-muted">Notas 9-10</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-meh me-2"></i>
+                    Neutros
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-warning">{{ neutros }}</h3>
+                <small class="text-muted">Notas 7-8</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-thumbs-down me-2"></i>
+                    Detratores
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-danger">{{ detratores }}</h3>
+                <small class="text-muted">Notas 0-6</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Score NPS
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="{% if nps_score >= 50 %}text-success{% elif nps_score >= 0 %}text-warning{% else %}text-danger{% endif %}">
+                    {{ "%.1f"|format(nps_score) }}
+                </h3>
+                <small class="text-muted">
+                    {% if nps_score >= 75 %}Excelente
+                    {% elif nps_score >= 50 %}Muito Bom
+                    {% elif nps_score >= 0 %}Bom
+                    {% else %}Crítico
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NPS por Profissional -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-md me-2"></i>
+                    NPS por Profissional
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if nps_profissional %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Profissional</th>
+                                <th>Avaliações</th>
+                                <th>Nota Média</th>
+                                <th>Classificação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in nps_profissional %}
+                            <tr>
+                                <td><strong>{{ item[0] }}</strong></td>
+                                <td>{{ item[1] }}</td>
+                                <td>
+                                    <strong class="{% if item[2] >= 9 %}text-success{% elif item[2] >= 7 %}text-warning{% else %}text-danger{% endif %}">
+                                        {{ "%.1f"|format(item[2] or 0) }}
+                                    </strong>
+                                </td>
+                                <td>
+                                    {% if item[2] >= 9 %}
+                                    <span class="badge bg-success">Promotor</span>
+                                    {% elif item[2] >= 7 %}
+                                    <span class="badge bg-warning">Neutro</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Detrator</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-star fa-3x mb-3"></i>
+                    <p>Nenhuma avaliação encontrada para o período selecionado.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comentários Recentes -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-comments me-2"></i>
+                    Comentários Recentes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if avaliacoes %}
+                <div class="row">
+                    {% for avaliacao in avaliacoes[:6] %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-left-primary">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">{{ avaliacao.paciente_avaliacao.nome }}</h6>
+                                    <span class="badge {% if avaliacao.nota_nps >= 9 %}bg-success{% elif avaliacao.nota_nps >= 7 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ avaliacao.nota_nps }}
+                                    </span>
+                                </div>
+                                {% if avaliacao.comentario %}
+                                <p class="small text-muted mb-2">"{{ avaliacao.comentario }}"</p>
+                                {% endif %}
+                                <small class="text-muted">
+                                    {{ avaliacao.data_avaliacao.strftime('%d/%m/%Y') }} - 
+                                    {{ avaliacao.profissional_avaliacao.nome if avaliacao.profissional_avaliacao }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-comment-slash fa-3x mb-3"></i>
+                    <p>Nenhum comentário disponível para o período selecionado.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

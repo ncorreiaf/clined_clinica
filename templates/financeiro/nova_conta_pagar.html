@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Conta a Pagar - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-plus text-danger me-2"></i>
+                Nova Conta a Pagar
+            </h2>
+            <a href="{{ url_for('financeiro.contas_pagar') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice me-2"></i>
+                    Dados da Conta a Pagar
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fornecedor" class="form-label">Fornecedor *</label>
+                            <input type="text" class="form-control" id="fornecedor" name="fornecedor" required
+                                   placeholder="Nome do fornecedor ou empresa">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="categoria" class="form-label">Categoria *</label>
+                            <select class="form-select" id="categoria" name="categoria" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="Aluguel">Aluguel</option>
+                                <option value="Energia">Energia Elétrica</option>
+                                <option value="Água">Água</option>
+                                <option value="Internet">Internet/Telefone</option>
+                                <option value="Material">Material de Consumo</option>
+                                <option value="Equipamento">Equipamentos</option>
+                                <option value="Salário">Salários</option>
+                                <option value="Impostos">Impostos</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Manutenção">Manutenção</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="descricao" class="form-label">Descrição *</label>
+                            <input type="text" class="form-control" id="descricao" name="descricao" required
+                                   placeholder="Descrição detalhada da despesa">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="valor" class="form-label">Valor (R$) *</label>
+                            <input type="number" class="form-control" id="valor" name="valor" step="0.01" required
+                                   placeholder="0,00">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="data_vencimento" class="form-label">Data de Vencimento *</label>
+                            <input type="date" class="form-control" id="data_vencimento" name="data_vencimento" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="centro_custo" class="form-label">Centro de Custo</label>
+                            <input type="text" class="form-control" id="centro_custo" name="centro_custo"
+                                   placeholder="Ex: Administração, Clínica, Marketing">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3"
+                                  placeholder="Observações adicionais sobre a conta..."></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-save me-1"></i>Criar Conta
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-eraser me-1"></i>Limpar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Categorias de Despesas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-primary">Fixas</h6>
+                    <ul class="small">
+                        <li>Aluguel</li>
+                        <li>Energia, Água</li>
+                        <li>Internet/Telefone</li>
+                        <li>Salários</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-primary">Variáveis</h6>
+                    <ul class="small">
+                        <li>Material de Consumo</li>
+                        <li>Marketing</li>
+                        <li>Manutenção</li>
+                        <li>Equipamentos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir data de vencimento padrão (hoje + 30 dias)
+    const hoje = new Date();
+    const vencimento = new Date(hoje.getTime() + (30 * 24 * 60 * 60 * 1000));
+    document.getElementById('data_vencimento').value = vencimento.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

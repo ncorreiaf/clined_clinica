@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Relatórios - {{ config.CLINIC_NAME }}{% endblock %}
+{% block page_title %}Dashboard Relatórios{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section fade-in-up">
+    <div class="d-flex align-items-center">
+        <div>
+            <h1 class="hero-title">
+                <i class="fas fa-chart-bar me-3"></i>
+                Dashboard Gerencial
+            </h1>
+            <p class="hero-subtitle">Indicadores de performance e relatórios</p>
+        </div>
+    </div>
+</div>
+
+<!-- Indicadores Principais -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.1s">
+            <div class="stats-card-icon primary">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stats-card-value">{{ total_pacientes }}</div>
+            <div class="stats-card-label">Total de Pacientes</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.2s">
+            <div class="stats-card-icon success">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <div class="stats-card-value">{{ total_profissionais }}</div>
+            <div class="stats-card-label">Profissionais Ativos</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.3s">
+            <div class="stats-card-icon info">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stats-card-value">{{ atendimentos_mes }}</div>
+            <div class="stats-card-label">Atendimentos no Mês</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.4s">
+            <div class="stats-card-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stats-card-value">{{ alertas_ativos }}</div>
+            <div class="stats-card-label">Alertas Ativos</div>
+        </div>
+    </div>
+</div>
+
+<!-- Indicadores Financeiros -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-money-bill-wave me-2"></i>
+                    Faturamento
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-success">R$ {{ "%.2f"|format(faturamento_mes) }}</h5>
+                        <small class="text-muted">Este Mês</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-info">R$ {{ "%.2f"|format(faturamento_ano) }}</h5>
+                        <small class="text-muted">Este Ano</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-calculator me-2"></i>
+                    Ticket Médio
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h4 class="text-primary">R$ {{ "%.2f"|format(ticket_medio) }}</h4>
+                <small class="text-muted">Por atendimento</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-star me-2"></i>
+                    NPS Médio
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h4 class="text-warning">{{ "%.1f"|format(nps_medio) }}</h4>
+                <small class="text-muted">Satisfação</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Atendimentos por Dia (Últimos 30 dias)
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="chartAtendimentos" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-pie-chart me-2"></i>
+                    Faturamento por Especialidade
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="chartEspecialidades" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Relatórios Rápidos -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.5s">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-money-bill-wave me-2"></i>
+                    Relatórios Financeiros
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('relatorios.faturamento') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-bar"></i>
+                        Faturamento por Profissional
+                    </a>
+                    <a href="{{ url_for('relatorios.ticket_medio') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-calculator"></i>
+                        Ticket Médio Detalhado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.6s">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-star me-2"></i>
+                    Qualidade e Satisfação
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('relatorios.nps') }}" class="btn btn-outline-success">
+                        <i class="fas fa-thumbs-up"></i>
+                        Relatório NPS
+                    </a>
+                    <a href="{{ url_for('relatorios.alertas') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Alertas e Auditoria
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Carregar dados dos gráficos
+    fetch('{{ url_for("relatorios.api_dados_dashboard") }}')
+        .then(response => response.json())
+        .then(data => {
+            // Gráfico de Atendimentos
+            const ctxAtendimentos = document.getElementById('chartAtendimentos').getContext('2d');
+            new Chart(ctxAtendimentos, {
+                type: 'line',
+                data: {
+                    labels: data.atendimentos_diarios.map(item => item.data),
+                    datasets: [{
+                        label: 'Atendimentos',
+                        data: data.atendimentos_diarios.map(item => item.atendimentos),
+                        borderColor: '#4d7493',
+                        backgroundColor: 'rgba(77, 116, 147, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de Especialidades
+            const ctxEspecialidades = document.getElementById('chartEspecialidades').getContext('2d');
+            new Chart(ctxEspecialidades, {
+                type: 'doughnut',
+                data: {
+                    labels: data.faturamento_especialidade.map(item => item.especialidade),
+                    datasets: [{
+                        data: data.faturamento_especialidade.map(item => item.valor),
+                        backgroundColor: [
+                            '#4d7493',
+                            '#7493a4',
+                            '#5a9373',
+                            '#b3934d',
+                            '#4d93b3'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        })
+        .catch(error => console.error('Erro ao carregar dados:', error));
+});
+</script>
+{% endblock %}

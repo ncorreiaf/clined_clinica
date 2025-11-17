@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Pacientes - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Cabeçalho da página -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-user-injured text-success me-2"></i>
+                Lista de Pacientes
+            </h2>
+        </div>
+    </div>
+</div>
+
+<!-- Formulário de busca -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="d-flex align-items-end gap-3">
+                    <div class="flex-grow-1">
+                        <label for="busca" class="form-label">
+                            <i class="fas fa-search me-1"></i>
+                            Buscar por Nome ou CPF
+                        </label>
+                        <input type="text" class="form-control" id="busca" name="busca" 
+                               value="{{ busca }}" placeholder="Digite o nome ou CPF do paciente...">
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>Buscar
+                        </button>
+                        {% if busca %}
+                        <a href="{{ url_for('prontuario.lista_pacientes') }}" class="btn btn-secondary ms-1">
+                            <i class="fas fa-times me-1"></i>Limpar
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="mb-2">
+                    Total de pacientes: 
+                    <span class="badge bg-success">{{ pacientes|length }}</span>
+                </h6>
+                {% if busca %}
+                <small class="text-muted">Resultado da busca: "{{ busca }}"</small>
+                {% else %}
+                <small class="text-muted">Mostrando todos os pacientes</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de pacientes -->
+<div class="row">
+    <div class="col-12">
+        {% if pacientes %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Pacientes Cadastrados
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Contato</th>
+                                <th>Cadastro</th>
+                                <th>Atendimentos</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for paciente in pacientes %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>{{ paciente.nome }}</strong>
+                                        {% if paciente.data_nascimento %}
+                                        <br>
+                                        <small class="text-muted">
+                                            Nascimento: {{ paciente.data_nascimento.strftime('%d/%m/%Y') }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <code>{{ paciente.cpf }}</code>
+                                </td>
+                                <td>
+                                    {% if paciente.telefone %}
+                                        <i class="fas fa-phone me-1 text-muted"></i>{{ paciente.telefone }}
+                                        <br>
+                                    {% endif %}
+                                    {% if paciente.email %}
+                                        <i class="fas fa-envelope me-1 text-muted"></i>{{ paciente.email }}
+                                    {% endif %}
+                                    {% if not paciente.telefone and not paciente.email %}
+                                        <small class="text-muted">Sem contato</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ paciente.data_cadastro.strftime('%d/%m/%Y') }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        {{ paciente.prontuarios|length }} prontuários
+                                    </span>
+                                    <br>
+                                    <span class="badge bg-info">
+                                        {{ paciente.agendamentos|length }} agendamentos
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group-vertical btn-group-sm">
+                                        <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}" 
+                                           class="btn btn-success btn-sm">
+                                            <i class="fas fa-file-medical me-1"></i>Ver Prontuário
+                                        </a>
+                                        <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-edit me-1"></i>Editar Prontuário
+                                        </a>
+                                        <a href="{{ url_for('agendamento.agendar') }}?paciente_id={{ paciente.id }}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-calendar-plus me-1"></i>Agendar
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Mensagem quando não há pacientes -->
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-user-times fa-4x text-muted mb-3"></i>
+                {% if busca %}
+                <h4 class="text-muted">Nenhum paciente encontrado</h4>
+                <p class="text-muted mb-4">
+                    Não foram encontrados pacientes com o termo: <strong>"{{ busca }}"</strong>
+                </p>
+                <a href="{{ url_for('prontuario.lista_pacientes') }}" class="btn btn-secondary me-2">
+                    <i class="fas fa-arrow-left me-1"></i>Ver Todos
+                </a>
+                {% else %}
+                <h4 class="text-muted">Nenhum paciente cadastrado</h4>
+                <p class="text-muted mb-4">
+                    Ainda não há pacientes cadastrados no sistema.
+                    O primeiro paciente será cadastrado automaticamente ao criar um agendamento.
+                </p>
+                {% endif %}
+                <a href="{{ url_for('agendamento.agendar') }}" class="btn btn-primary">
+                    <i class="fas fa-calendar-plus me-1"></i>Criar Agendamento
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Cards com estatísticas rápidas -->
+{% if pacientes %}
+<div class="row mt-4">
+    <div class="col-12">
+        <h4 class="mb-3">
+            <i class="fas fa-chart-bar me-2"></i>
+            Estatísticas Rápidas
+        </h4>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total de Pacientes</h6>
+                        <h4>{{ pacientes|length }}</h4>
+                    </div>
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Com Prontuários</h6>
+                        <h4>{{ pacientes|selectattr('prontuarios')|list|length }}</h4>
+                    </div>
+                    <i class="fas fa-file-medical fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Com Telefone</h6>
+                        <h4>{{ pacientes|selectattr('telefone')|list|length }}</h4>
+                    </div>
+                    <i class="fas fa-phone fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Cadastros Recentes</h6>
+                        <h4>{{ pacientes|selectattr('data_cadastro')|list|length if pacientes else 0 }}</h4>
+                    </div>
+                    <i class="fas fa-calendar-plus fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Conta a Receber - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-plus text-success me-2"></i>
+                Nova Conta a Receber
+            </h2>
+            <a href="{{ url_for('financeiro.contas_receber') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Dados da Conta a Receber
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="paciente_id" class="form-label">Paciente *</label>
+                            <select class="form-select" id="paciente_id" name="paciente_id" required>
+                                <option value="">Selecione um paciente</option>
+                                {% for paciente in pacientes %}
+                                <option value="{{ paciente.id }}">{{ paciente.nome }} - {{ paciente.cpf }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="agendamento_id" class="form-label">Agendamento (Opcional)</label>
+                            <select class="form-select" id="agendamento_id" name="agendamento_id">
+                                <option value="">Selecione um agendamento</option>
+                                {% for agendamento in agendamentos %}
+                                <option value="{{ agendamento.id }}">
+                                    {{ agendamento.paciente_ref.nome }} - {{ agendamento.data_agendamento.strftime('%d/%m/%Y %H:%M') }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="descricao" class="form-label">Descrição *</label>
+                            <input type="text" class="form-control" id="descricao" name="descricao" required
+                                   placeholder="Ex: Consulta Fisioterapia, Sessão de Terapia...">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="valor" class="form-label">Valor (R$) *</label>
+                            <input type="number" class="form-control" id="valor" name="valor" step="0.01" required
+                                   placeholder="0,00">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="data_vencimento" class="form-label">Data de Vencimento *</label>
+                            <input type="date" class="form-control" id="data_vencimento" name="data_vencimento" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3"
+                                  placeholder="Observações adicionais sobre a conta..."></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i>Criar Conta
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-eraser me-1"></i>Limpar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informações
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    Use este formulário para criar novas contas a receber. 
+                    Você pode vincular a conta a um agendamento específico ou criar uma conta avulsa.
+                </p>
+                <hr>
+                <h6 class="text-primary">Dicas:</h6>
+                <ul class="small">
+                    <li>Vincule ao agendamento quando possível</li>
+                    <li>Use descrições claras e objetivas</li>
+                    <li>Defina prazos de vencimento realistas</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir data de vencimento padrão (hoje + 30 dias)
+    const hoje = new Date();
+    const vencimento = new Date(hoje.getTime() + (30 * 24 * 60 * 60 * 1000));
+    document.getElementById('data_vencimento').value = vencimento.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

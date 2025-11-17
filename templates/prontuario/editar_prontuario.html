@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Prontuário - {{ paciente.nome }} - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Cabeçalho da página -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-edit text-primary me-2"></i>
+                Nova Entrada no Prontuário
+            </h2>
+            <div class="btn-group">
+                <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar ao Prontuário
+                </a>
+                <a href="{{ url_for('prontuario.lista_pacientes') }}" class="btn btn-outline-info">
+                    <i class="fas fa-list me-1"></i>Lista de Pacientes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informações do paciente (resumo) -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5 class="alert-heading">
+                <i class="fas fa-user me-2"></i>
+                {{ paciente.nome }}
+            </h5>
+            <p class="mb-0">
+                <strong>CPF:</strong> {{ paciente.cpf }} | 
+                <strong>Telefone:</strong> {{ paciente.telefone or 'Não informado' }} | 
+                <strong>Cadastro:</strong> {{ paciente.data_cadastro.strftime('%d/%m/%Y') }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Formulário de prontuário -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-stethoscope me-2"></i>
+                    Dados do Atendimento
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="formProntuario">
+                    <div class="row mb-4">
+                        <!-- Informações básicas do atendimento -->
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Informações do Atendimento
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="especialidade" class="form-label">Tipo de Atendimento *</label>
+                            <select class="form-select" id="especialidade" name="especialidade" required>
+                                <option value="">Selecione o tipo</option>
+                                {% for servico in config.SERVICOS_DISPONIVEIS %}
+                                <option value="{{ servico }}">{{ servico }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="profissional_nome" class="form-label">Profissional Responsável</label>
+                            <input type="text" class="form-control" id="profissional_nome"
+                                   name="profissional_nome" readonly
+                                   value="{{ config.MEDICO_NOME }} - {{ config.MEDICO_ESPECIALIDADE }}">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <!-- Dados clínicos -->
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-notes-medical me-1"></i>
+                                Dados Clínicos
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="queixa_principal" class="form-label">Queixa Principal</label>
+                            <textarea class="form-control" id="queixa_principal" name="queixa_principal" 
+                                      rows="4" placeholder="Descreva a queixa principal do paciente..."></textarea>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="historia_doenca" class="form-label">História da Doença Atual</label>
+                            <textarea class="form-control" id="historia_doenca" name="historia_doenca" 
+                                      rows="4" placeholder="História detalhada da doença atual..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="exame_fisico" class="form-label">Exame Físico</label>
+                            <textarea class="form-control" id="exame_fisico" name="exame_fisico" 
+                                      rows="4" placeholder="Achados do exame físico..."></textarea>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="diagnostico" class="form-label">Diagnóstico/Avaliação</label>
+                            <textarea class="form-control" id="diagnostico" name="diagnostico" 
+                                      rows="4" placeholder="Diagnóstico clínico ou avaliação..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <!-- Prescrição e observações -->
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-prescription me-1"></i>
+                                Conduta e Orientações
+                            </h6>
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            <label for="prescricao" class="form-label">Prescrição/Conduta</label>
+                            <textarea class="form-control" id="prescricao" name="prescricao" 
+                                      rows="5" placeholder="Medicamentos, exercícios, orientações terapêuticas..."></textarea>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="observacoes" class="form-label">Observações Adicionais</label>
+                            <textarea class="form-control" id="observacoes" name="observacoes" 
+                                      rows="3" placeholder="Observações gerais, próximas etapas, etc..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-1"></i>
+                                    Salvar Atendimento
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-eraser me-1"></i>
+                                    Limpar Formulário
+                                </button>
+                                <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>
+                                    Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Painel lateral com modelos/templates -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Dicas de Preenchimento
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-primary">Queixa Principal</h6>
+                    <small class="text-muted">
+                        Registre o motivo da consulta na linguagem do paciente.
+                        Ex: "Dor nas costas há 3 dias"
+                    </small>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-primary">História da Doença</h6>
+                    <small class="text-muted">
+                        Detalhe quando começou, características, fatores que melhoram/pioram, tratamentos já realizados.
+                    </small>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-primary">Exame Físico</h6>
+                    <small class="text-muted">
+                        Registre os achados objetivos do exame físico específico da especialidade.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Informações Importantes
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>Todos os campos são opcionais, mas recomendamos preencher ao menos a queixa principal</li>
+                    <li>As informações ficarão permanentemente no histórico do paciente</li>
+                    <li>Após salvar, será possível gerar documentos médicos baseados neste atendimento</li>
+                    <li>Use linguagem técnica adequada, pois os dados podem ser impressos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-file-medical me-2"></i>
+                    Documentos Disponíveis
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">
+                    Após salvar este atendimento, você poderá gerar:
+                </p>
+                <ul class="small">
+                    <li><i class="fas fa-prescription text-primary"></i> Prescrição médica</li>
+                    <li><i class="fas fa-vial text-info"></i> Pedido de exames</li>
+                    <li><i class="fas fa-certificate text-warning"></i> Atestado médico</li>
+                    <li><i class="fas fa-receipt text-success"></i> Recibo de atendimento</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize das textareas conforme o conteúdo
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
+    
+    // Confirmação antes de sair da página sem salvar
+    const form = document.getElementById('formProntuario');
+    let formModified = false;
+    
+    form.addEventListener('input', function() {
+        formModified = true;
+    });
+    
+    window.addEventListener('beforeunload', function(e) {
+        if (formModified) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+    
+    form.addEventListener('submit', function() {
+        formModified = false;
+    });
+});
+</script>
+{% endblock %}

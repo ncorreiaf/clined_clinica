@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Agendamento - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-calendar-plus text-primary me-2"></i>
+                Novo Agendamento
+            </h2>
+            <a href="{{ url_for('agendamento.lista_agendamentos') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar à Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Informações do Agendamento
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="formAgendamento">
+                    <!-- Dados do Paciente -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-user-injured me-1"></i>
+                                Dados do Paciente
+                            </h6>
+                        </div>
+
+                        <!-- Toggle entre Cliente Existente e Novo -->
+                        <div class="col-12 mb-3">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="tipo_cliente" id="clienteExistente" value="existente" checked>
+                                <label class="btn btn-outline-primary" for="clienteExistente">
+                                    <i class="fas fa-search me-1"></i>Buscar Cliente Existente
+                                </label>
+
+                                <input type="radio" class="btn-check" name="tipo_cliente" id="clienteNovo" value="novo">
+                                <label class="btn btn-outline-success" for="clienteNovo">
+                                    <i class="fas fa-user-plus me-1"></i>Cadastrar Novo Cliente
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Busca de Cliente Existente -->
+                        <div id="secaoBusca" class="col-12 mb-3">
+                            <label for="buscaCliente" class="form-label">Buscar por Nome ou CPF</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="buscaCliente"
+                                       placeholder="Digite o nome ou CPF do cliente..." autocomplete="off">
+                            </div>
+                            <div id="resultadoBusca" class="list-group mt-2" style="display: none;"></div>
+                            <small class="text-muted">Digite pelo menos 3 caracteres para buscar</small>
+                        </div>
+
+                        <!-- Formulário de Dados do Cliente -->
+                        <div id="dadosCliente" class="row">
+                            <div class="col-md-6">
+                                <label for="nome_paciente" class="form-label">Nome Completo *</label>
+                                <input type="text" class="form-control" id="nome_paciente" name="nome_paciente" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="cpf_paciente" class="form-label">CPF *</label>
+                                <input type="text" class="form-control" id="cpf_paciente" name="cpf_paciente"
+                                       placeholder="000.000.000-00" required>
+                            </div>
+
+                            <div class="col-md-6 mt-3">
+                                <label for="telefone" class="form-label">Telefone *</label>
+                                <input type="tel" class="form-control" id="telefone" name="telefone"
+                                       placeholder="(00) 00000-0000" required>
+                            </div>
+
+                            <div class="col-md-6 mt-3">
+                                <label for="email" class="form-label">E-mail</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="email@exemplo.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dados do Agendamento -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Dados do Agendamento
+                            </h6>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <div class="alert alert-info">
+                                <i class="fas fa-user-md me-2"></i>
+                                <strong>Profissional:</strong> {{ config.MEDICO_NOME }} - {{ config.MEDICO_ESPECIALIDADE }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="data_selecionada" class="form-label">Data *</label>
+                            <input type="date" class="form-control" id="data_selecionada" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="horario_selecionado" class="form-label">Horário *</label>
+                            <select class="form-select" id="horario_selecionado" name="horario_agendamento" required disabled>
+                                <option value="">Selecione primeiro uma data</option>
+                            </select>
+                            <small class="text-muted">Horário de atendimento: 08:00 às 18:00</small>
+                        </div>
+
+                        <input type="hidden" id="data_agendamento" name="data_agendamento">
+
+                        <div class="col-md-12 mt-3">
+                            <label for="servico" class="form-label">Serviço/Exame *</label>
+                            <select class="form-select" id="servico" name="servico" required>
+                                <option value="">Selecione o serviço ou exame</option>
+                                {% for servico in servicos %}
+                                <option value="{{ servico }}">{{ servico }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="observacoes" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoes" name="observacoes" rows="3"
+                                      placeholder="Informações adicionais sobre o agendamento..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>
+                                    Confirmar Agendamento
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-eraser me-1"></i>
+                                    Limpar Formulário
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel lateral com informações -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informações Importantes
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-primary">Horário de Funcionamento</h6>
+                    <p class="small text-muted mb-2">
+                        <i class="fas fa-clock me-1"></i>
+                        {{ config.HORARIO_ABERTURA }} às {{ config.HORARIO_FECHAMENTO }}
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-primary">Serviços Disponíveis</h6>
+                    <ul class="small text-muted">
+                        {% for servico in servicos %}
+                        <li>{{ servico }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-primary">Status Possíveis</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-primary">Agendado</span>
+                        <span class="badge bg-warning">Em Espera</span>
+                        <span class="badge bg-success">Em Atendimento</span>
+                        <span class="badge bg-secondary">Finalizado</span>
+                        <span class="badge bg-danger">Faltou</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card com atalhos -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Ações Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('agendamento.lista_agendamentos') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-list me-1"></i>Ver Agendamentos
+                    </a>
+                    <a href="{{ url_for('agendamento.fila_espera') }}" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-users me-1"></i>Fila de Espera
+                    </a>
+                    <a href="{{ url_for('prontuario.lista_pacientes') }}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-user-injured me-1"></i>Lista de Pacientes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript para validação e formatação do formulário
+document.addEventListener('DOMContentLoaded', function() {
+    const secaoBusca = document.getElementById('secaoBusca');
+    const dadosCliente = document.getElementById('dadosCliente');
+    const inputBusca = document.getElementById('buscaCliente');
+    const resultadoBusca = document.getElementById('resultadoBusca');
+    let timeoutBusca;
+
+    // Toggle entre buscar existente e novo cliente
+    document.querySelectorAll('input[name="tipo_cliente"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'existente') {
+                secaoBusca.style.display = 'block';
+                dadosCliente.style.display = 'none';
+                // Remover required dos campos
+                document.getElementById('nome_paciente').removeAttribute('required');
+                document.getElementById('cpf_paciente').removeAttribute('required');
+                document.getElementById('telefone').removeAttribute('required');
+            } else {
+                secaoBusca.style.display = 'none';
+                dadosCliente.style.display = 'block';
+                resultadoBusca.style.display = 'none';
+                // Adicionar required aos campos
+                document.getElementById('nome_paciente').setAttribute('required', 'required');
+                document.getElementById('cpf_paciente').setAttribute('required', 'required');
+                document.getElementById('telefone').setAttribute('required', 'required');
+                // Limpar campos
+                limparCamposCliente();
+            }
+        });
+    });
+
+    // Busca de clientes
+    inputBusca.addEventListener('input', function() {
+        clearTimeout(timeoutBusca);
+        const termo = this.value.trim();
+
+        if (termo.length < 3) {
+            resultadoBusca.style.display = 'none';
+            return;
+        }
+
+        timeoutBusca = setTimeout(async () => {
+            try {
+                const response = await fetch(`/agendamento/buscar-paciente?termo=${encodeURIComponent(termo)}`);
+                const data = await response.json();
+
+                if (data.pacientes.length === 0) {
+                    resultadoBusca.innerHTML = '<div class="list-group-item text-muted">Nenhum cliente encontrado</div>';
+                    resultadoBusca.style.display = 'block';
+                    return;
+                }
+
+                let html = '';
+                data.pacientes.forEach(paciente => {
+                    html += `
+                        <button type="button" class="list-group-item list-group-item-action" onclick="selecionarPaciente(${paciente.id}, '${paciente.nome.replace(/'/g, "\\'")}',' ${paciente.cpf}', '${paciente.telefone}', '${paciente.email}')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">${paciente.nome}</h6>
+                                    <small class="text-muted">CPF: ${paciente.cpf} | Tel: ${paciente.telefone}</small>
+                                </div>
+                                <i class="fas fa-check-circle text-success"></i>
+                            </div>
+                        </button>
+                    `;
+                });
+
+                resultadoBusca.innerHTML = html;
+                resultadoBusca.style.display = 'block';
+            } catch (error) {
+                console.error('Erro ao buscar pacientes:', error);
+            }
+        }, 300);
+    });
+
+    // Formatação do CPF
+    const cpfInput = document.getElementById('cpf_paciente');
+    cpfInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+            value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            e.target.value = value;
+        }
+    });
+
+    // Formatação do telefone
+    const telefoneInput = document.getElementById('telefone');
+    telefoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+            value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            e.target.value = value;
+        }
+    });
+
+    // Configurar data mínima como hoje
+    const dataSelecionada = document.getElementById('data_selecionada');
+    const horarioSelect = document.getElementById('horario_selecionado');
+    const dataAgendamentoHidden = document.getElementById('data_agendamento');
+
+    const hoje = new Date();
+    const dataMinima = hoje.toISOString().split('T')[0];
+    dataSelecionada.min = dataMinima;
+
+    // Carregar horários quando data for selecionada
+    dataSelecionada.addEventListener('change', async function() {
+        const data = this.value;
+
+        if (!data) {
+            horarioSelect.disabled = true;
+            horarioSelect.innerHTML = '<option value="">Selecione primeiro uma data</option>';
+            return;
+        }
+
+        // Mostrar loading
+        horarioSelect.disabled = true;
+        horarioSelect.innerHTML = '<option value="">Carregando horários...</option>';
+
+        try {
+            const response = await fetch(`/agendamento/horarios-disponiveis?data=${data}`);
+            const dados = await response.json();
+
+            // Limpar e adicionar horários
+            horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+
+            let horariosDisponiveis = 0;
+            dados.horarios.forEach(h => {
+                const option = document.createElement('option');
+                option.value = h.horario;
+                option.textContent = h.horario;
+
+                if (!h.disponivel) {
+                    option.disabled = true;
+                    option.textContent += ' (Ocupado)';
+                    option.style.color = '#ccc';
+                } else {
+                    horariosDisponiveis++;
+                }
+
+                horarioSelect.appendChild(option);
+            });
+
+            if (horariosDisponiveis === 0) {
+                horarioSelect.innerHTML = '<option value="">Nenhum horário disponível nesta data</option>';
+            } else {
+                horarioSelect.disabled = false;
+            }
+
+        } catch (error) {
+            console.error('Erro ao carregar horários:', error);
+            horarioSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
+        }
+    });
+
+    // Atualizar campo hidden quando horário for selecionado
+    horarioSelect.addEventListener('change', function() {
+        const data = dataSelecionada.value;
+        const horario = this.value;
+
+        if (data && horario) {
+            dataAgendamentoHidden.value = `${data}T${horario}`;
+        }
+    });
+
+    // Iniciar com busca visível
+    dadosCliente.style.display = 'none';
+});
+
+// Função global para selecionar paciente
+function selecionarPaciente(id, nome, cpf, telefone, email) {
+    // Preencher campos
+    document.getElementById('nome_paciente').value = nome;
+    document.getElementById('cpf_paciente').value = cpf;
+    document.getElementById('telefone').value = telefone;
+    document.getElementById('email').value = email || '';
+
+    // Mostrar campos preenchidos
+    document.getElementById('dadosCliente').style.display = 'block';
+    document.getElementById('resultadoBusca').style.display = 'none';
+    document.getElementById('buscaCliente').value = '';
+
+    // Adicionar required aos campos
+    document.getElementById('nome_paciente').setAttribute('required', 'required');
+    document.getElementById('cpf_paciente').setAttribute('required', 'required');
+    document.getElementById('telefone').setAttribute('required', 'required');
+
+    // Mostrar mensagem de sucesso
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show mt-2';
+    alert.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>Cliente selecionado: <strong>${nome}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.getElementById('secaoBusca').appendChild(alert);
+
+    // Remover alert após 3 segundos
+    setTimeout(() => alert.remove(), 3000);
+}
+
+function limparCamposCliente() {
+    document.getElementById('nome_paciente').value = '';
+    document.getElementById('cpf_paciente').value = '';
+    document.getElementById('telefone').value = '';
+    document.getElementById('email').value = '';
+}
+</script>
+
+<style>
+#resultadoBusca {
+    position: absolute;
+    z-index: 1000;
+    width: calc(100% - 30px);
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background: white;
+}
+
+#resultadoBusca .list-group-item {
+    cursor: pointer;
+}
+
+#resultadoBusca .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+#secaoBusca {
+    position: relative;
+}
+</style>
+{% endblock %}

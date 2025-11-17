@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Faturamento - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-money-bill-wave text-success me-2"></i>
+                Relatório de Faturamento
+            </h2>
+            <a href="{{ url_for('relatorios.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="data_inicio" class="form-label">Data Início</label>
+                        <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="data_fim" class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ data_fim }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="mb-2">Período: {{ data_inicio }} a {{ data_fim }}</h6>
+                <small class="text-muted">Relatório de faturamento detalhado</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Faturamento por Profissional -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-md me-2"></i>
+                    Faturamento por Profissional
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if faturamento_profissional %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Profissional</th>
+                                <th>Especialidade</th>
+                                <th>Atendimentos</th>
+                                <th>Faturamento Total</th>
+                                <th>Ticket Médio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in faturamento_profissional %}
+                            <tr>
+                                <td><strong>{{ item[0] }}</strong></td>
+                                <td>{{ item[1] }}</td>
+                                <td>{{ item[2] }}</td>
+                                <td><strong class="text-success">R$ {{ "%.2f"|format(item[3] or 0) }}</strong></td>
+                                <td>R$ {{ "%.2f"|format((item[3] or 0) / item[2] if item[2] > 0 else 0) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>Nenhum faturamento encontrado para o período selecionado.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Faturamento por Especialidade -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Faturamento por Especialidade
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if faturamento_especialidade %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Especialidade</th>
+                                <th>Atendimentos</th>
+                                <th>Faturamento Total</th>
+                                <th>Participação %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set total_geral = faturamento_especialidade|sum(attribute=2) or 1 %}
+                            {% for item in faturamento_especialidade %}
+                            <tr>
+                                <td><strong>{{ item[0] }}</strong></td>
+                                <td>{{ item[1] }}</td>
+                                <td><strong class="text-success">R$ {{ "%.2f"|format(item[2] or 0) }}</strong></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                            <div class="progress-bar bg-info" 
+                                                 style="width: {{ ((item[2] or 0) / total_geral * 100)|round(1) }}%">
+                                            </div>
+                                        </div>
+                                        <span class="small">{{ ((item[2] or 0) / total_geral * 100)|round(1) }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                    <p>Nenhum faturamento encontrado para o período selecionado.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

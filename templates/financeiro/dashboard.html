@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Financeiro - {{ config.CLINIC_NAME }}{% endblock %}
+{% block page_title %}Dashboard Financeiro{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section fade-in-up">
+    <div class="d-flex align-items-center">
+        <div>
+            <h1 class="hero-title">
+                <i class="fas fa-chart-line me-3"></i>
+                Dashboard Financeiro
+            </h1>
+            <p class="hero-subtitle">Visão geral da situação financeira</p>
+        </div>
+    </div>
+</div>
+
+<!-- Indicadores Financeiros -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.1s">
+            <div class="stats-card-icon success">
+                <i class="fas fa-arrow-up"></i>
+            </div>
+            <div class="stats-card-value">R$ {{ "%.2f"|format(total_receber) }}</div>
+            <div class="stats-card-label">Total a Receber</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.2s">
+            <div class="stats-card-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stats-card-value">R$ {{ "%.2f"|format(vencidas_receber) }}</div>
+            <div class="stats-card-label">Vencidas a Receber</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.3s">
+            <div class="stats-card-icon info">
+                <i class="fas fa-arrow-down"></i>
+            </div>
+            <div class="stats-card-value">R$ {{ "%.2f"|format(total_pagar) }}</div>
+            <div class="stats-card-label">Total a Pagar</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stats-card fade-in-up" style="animation-delay: 0.4s">
+            <div class="stats-card-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stats-card-value">R$ {{ "%.2f"|format(vencidas_pagar) }}</div>
+            <div class="stats-card-label">Vencidas a Pagar</div>
+        </div>
+    </div>
+</div>
+
+<!-- Fluxo de Caixa do Mês -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-plus me-2"></i>
+                    Entradas do Mês
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-success">R$ {{ "%.2f"|format(entradas_mes) }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-minus me-2"></i>
+                    Saídas do Mês
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-danger">R$ {{ "%.2f"|format(saidas_mes) }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-balance-scale me-2"></i>
+                    Saldo do Mês
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="{% if saldo_mes >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    R$ {{ "%.2f"|format(saldo_mes) }}
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ações Rápidas -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.5s">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-money-bill-wave me-2"></i>
+                    Contas a Receber
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Gerencie as contas a receber, controle pagamentos e acompanhe inadimplência.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('financeiro.contas_receber') }}" class="btn btn-primary">
+                        <i class="fas fa-list"></i>
+                        Ver Contas a Receber
+                    </a>
+                    <a href="{{ url_for('financeiro.nova_conta_receber') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i>
+                        Nova Conta a Receber
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.6s">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Contas a Pagar
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Controle suas obrigações financeiras, fornecedores e despesas operacionais.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('financeiro.contas_pagar') }}" class="btn btn-info">
+                        <i class="fas fa-list"></i>
+                        Ver Contas a Pagar
+                    </a>
+                    <a href="{{ url_for('financeiro.nova_conta_pagar') }}" class="btn btn-outline-info">
+                        <i class="fas fa-plus"></i>
+                        Nova Conta a Pagar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card fade-in-up" style="animation-delay: 0.7s">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    Fluxo de Caixa
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Acompanhe entradas e saídas, controle por competência e regime de caixa.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('financeiro.fluxo_caixa') }}" class="btn btn-success">
+                        <i class="fas fa-chart-line"></i>
+                        Ver Fluxo de Caixa
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SEÇÃO REMOVIDA - REPASSES NÃO EXISTE MAIS -->
+</div>
+{% endblock %}

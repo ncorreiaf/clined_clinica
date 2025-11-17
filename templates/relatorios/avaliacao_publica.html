@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação de Satisfação - {{ config.CLINIC_NAME }}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+        }
+        .avaliacao-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .card-avaliacao {
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border: none;
+        }
+        .card-header-custom {
+            background: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+        }
+        .logo-clinica {
+            max-width: 200px;
+            margin-bottom: 15px;
+        }
+        .btn-nota {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .btn-nota:hover {
+            transform: scale(1.1);
+        }
+        .nota-selecionada {
+            transform: scale(1.15);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .btn-enviar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px 50px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-enviar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="avaliacao-container">
+        <div class="card card-avaliacao">
+            <div class="card-header-custom">
+                <img src="{{ url_for('static', filename='image.png') }}" alt="{{ config.CLINIC_NAME }}" class="logo-clinica">
+                <h3 class="mb-2">Avaliação de Satisfação</h3>
+                <p class="text-muted mb-0">Sua opinião é muito importante para nós!</p>
+            </div>
+
+            <div class="card-body p-4">
+                {% if avaliacao_existente %}
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle"></i>
+                    Você já avaliou este atendimento com nota <strong>{{ avaliacao_existente.nota_nps }}</strong>.
+                    Você pode atualizar sua avaliação abaixo.
+                </div>
+                {% endif %}
+
+                <div class="alert alert-light border">
+                    <h6 class="mb-3"><i class="fas fa-user-injured text-primary"></i> Dados do Atendimento</h6>
+                    <p class="mb-1"><strong>Paciente:</strong> {{ agendamento.paciente_ref.nome }}</p>
+                    <p class="mb-1"><strong>Profissional:</strong> {{ agendamento.profissional_ref.nome }}</p>
+                    <p class="mb-1"><strong>Serviço:</strong> {{ agendamento.servico }}</p>
+                    <p class="mb-0"><strong>Data:</strong> {{ agendamento.data_agendamento.strftime('%d/%m/%Y') }}</p>
+                </div>
+
+                <form method="POST" id="formAvaliacao">
+                    <div class="mb-4">
+                        <label class="form-label mb-3">
+                            <strong style="font-size: 16px;">Em uma escala de 0 a 10, o quanto você recomendaria nossos serviços?</strong>
+                        </label>
+
+                        <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+                            {% for i in range(11) %}
+                            <div>
+                                <input type="radio" class="btn-check" name="nota_nps" id="nota{{ i }}" value="{{ i }}" required
+                                       {% if avaliacao_existente and avaliacao_existente.nota_nps == i %}checked{% endif %}>
+                                <label class="btn btn-outline-primary btn-nota" for="nota{{ i }}">{{ i }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">
+                                <i class="fas fa-frown"></i> Muito improvável
+                            </small>
+                            <small class="text-muted">
+                                <i class="fas fa-smile"></i> Muito provável
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="comentario" class="form-label">
+                            <strong>Comentários ou sugestões (opcional)</strong>
+                        </label>
+                        <textarea class="form-control" id="comentario" name="comentario" rows="4"
+                                  placeholder="Conte-nos sobre sua experiência, o que podemos melhorar...">{% if avaliacao_existente %}{{ avaliacao_existente.comentario }}{% endif %}</textarea>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-enviar">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            {% if avaliacao_existente %}Atualizar Avaliação{% else %}Enviar Avaliação{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-footer text-center text-muted bg-light">
+                <small>
+                    <i class="fas fa-lock"></i> Suas informações estão seguras conosco
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const radioButtons = document.querySelectorAll('input[name="nota_nps"]');
+
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const nota = parseInt(this.value);
+                    const labels = document.querySelectorAll('label[for^="nota"]');
+
+                    labels.forEach((label, index) => {
+                        label.classList.remove('btn-success', 'btn-warning', 'btn-danger', 'btn-outline-primary', 'nota-selecionada');
+
+                        if (index <= nota) {
+                            if (nota >= 9) {
+                                label.classList.add('btn-success');
+                            } else if (nota >= 7) {
+                                label.classList.add('btn-warning');
+                            } else {
+                                label.classList.add('btn-danger');
+                            }
+
+                            if (index === nota) {
+                                label.classList.add('nota-selecionada');
+                            }
+                        } else {
+                            label.classList.add('btn-outline-primary');
+                        }
+                    });
+                });
+
+                // Trigger change for pre-selected radio
+                if (radio.checked) {
+                    radio.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Prontuário - {{ paciente.nome }} - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Cabeçalho da página -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-file-medical text-success me-2"></i>
+                Prontuário de {{ paciente.nome }}
+            </h2>
+            <div class="btn-group">
+                <a href="{{ url_for('prontuario.lista_pacientes') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalAnexos">
+                    <i class="fas fa-paperclip me-1"></i>Anexos
+                </button>
+                <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-1"></i>Nova Entrada
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informações do paciente -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Informações do Paciente
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nome:</strong> {{ paciente.nome }}</p>
+                        <p><strong>CPF:</strong> {{ paciente.cpf }}</p>
+                        {% if paciente.data_nascimento %}
+                        <p><strong>Data de Nascimento:</strong> {{ paciente.data_nascimento.strftime('%d/%m/%Y') }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {% if paciente.telefone %}
+                        <p><strong>Telefone:</strong> {{ paciente.telefone }}</p>
+                        {% endif %}
+                        {% if paciente.email %}
+                        <p><strong>Email:</strong> {{ paciente.email }}</p>
+                        {% endif %}
+                        <p><strong>Cadastro:</strong> {{ paciente.data_cadastro.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                </div>
+                {% if paciente.endereco %}
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <p><strong>Endereço:</strong> {{ paciente.endereco }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estatísticas do paciente -->
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Resumo
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <span class="badge bg-primary">{{ prontuarios|length }}</span> 
+                    Entradas no prontuário
+                </p>
+                <p class="mb-2">
+                    <span class="badge bg-info">{{ paciente.agendamentos|length }}</span> 
+                    Agendamentos realizados
+                </p>
+                {% if prontuarios %}
+                <p class="mb-2">
+                    <strong>Último atendimento:</strong><br>
+                    <small class="text-muted">{{ prontuarios[0].data_atendimento.strftime('%d/%m/%Y às %H:%M') }}</small>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Histórico de prontuários -->
+<div class="row">
+    <div class="col-12">
+        {% if prontuarios %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Histórico de Atendimentos
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="accordion" id="accordionProntuarios">
+                    {% for prontuario in prontuarios %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ prontuario.id }}">
+                            <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" 
+                                    type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse{{ prontuario.id }}" 
+                                    aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" 
+                                    aria-controls="collapse{{ prontuario.id }}">
+                                <div class="d-flex justify-content-between w-100 me-3">
+                                    <div>
+                                        <strong>{{ prontuario.data_atendimento.strftime('%d/%m/%Y às %H:%M') }}</strong>
+                                        {% if prontuario.especialidade %}
+                                        - {{ prontuario.especialidade }}
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        {% if prontuario.profissional_nome %}
+                                        <small class="text-muted">{{ prontuario.profissional_nome }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ prontuario.id }}" 
+                             class="accordion-collapse collapse {% if loop.first %}show{% endif %}" 
+                             aria-labelledby="heading{{ prontuario.id }}" 
+                             data-bs-parent="#accordionProntuarios">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    {% if prontuario.queixa_principal %}
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-primary">Queixa Principal</h6>
+                                        <p class="text-muted">{{ prontuario.queixa_principal }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if prontuario.historia_doenca %}
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-primary">História da Doença</h6>
+                                        <p class="text-muted">{{ prontuario.historia_doenca }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if prontuario.exame_fisico %}
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-primary">Exame Físico</h6>
+                                        <p class="text-muted">{{ prontuario.exame_fisico }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if prontuario.diagnostico %}
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-primary">Diagnóstico</h6>
+                                        <p class="text-muted">{{ prontuario.diagnostico }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if prontuario.prescricao %}
+                                    <div class="col-12 mb-3">
+                                        <h6 class="text-primary">Prescrição</h6>
+                                        <p class="text-muted">{{ prontuario.prescricao }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if prontuario.observacoes %}
+                                    <div class="col-12 mb-3">
+                                        <h6 class="text-primary">Observações</h6>
+                                        <p class="text-muted">{{ prontuario.observacoes }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Botões para gerar documentos -->
+                                <div class="border-top pt-3">
+                                    <h6 class="text-muted mb-2">Documentos Médicos</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="{{ url_for('documentos.gerar_receituario', prontuario_id=prontuario.id) }}"
+                                           class="btn btn-outline-primary btn-sm" target="_blank">
+                                            <i class="fas fa-prescription me-1"></i>Receituário
+                                        </a>
+                                        <a href="{{ url_for('documentos.gerar_laudo', prontuario_id=prontuario.id) }}"
+                                           class="btn btn-outline-info btn-sm" target="_blank">
+                                            <i class="fas fa-file-medical me-1"></i>Laudo
+                                        </a>
+                                        <a href="{{ url_for('documentos.gerar_pedido_exame', prontuario_id=prontuario.id) }}"
+                                           class="btn btn-outline-cyan btn-sm" target="_blank">
+                                            <i class="fas fa-vial me-1"></i>Pedido de Exame
+                                        </a>
+                                        <a href="{{ url_for('documentos.gerar_atestado', prontuario_id=prontuario.id) }}"
+                                           class="btn btn-outline-warning btn-sm" target="_blank">
+                                            <i class="fas fa-certificate me-1"></i>Atestado
+                                        </a>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i>
+                                            O recibo é gerado através do agendamento
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Mensagem quando não há prontuários -->
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-file-medical-alt fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Nenhum atendimento registrado</h4>
+                <p class="text-muted mb-4">
+                    Este paciente ainda não possui entradas no prontuário eletrônico.
+                </p>
+                <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>Criar Primeira Entrada
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(0,0,0,.125);
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e7f3ff;
+    color: #0d6efd;
+}
+
+.accordion-body {
+    background-color: #f8f9fa;
+}
+
+.btn-group .btn {
+    margin-right: 0;
+}
+
+@media print {
+    .btn-group, .card-header, nav, footer {
+        display: none !important;
+    }
+}
+</style>
+
+<!-- Modal de Anexos -->
+<div class="modal fade" id="modalAnexos" tabindex="-1" aria-labelledby="modalAnexosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalAnexosLabel">
+                    <i class="fas fa-paperclip me-2"></i>Anexos do Prontuário
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulário de Upload -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-upload me-2"></i>Enviar Novo Arquivo</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="formUploadAnexo" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="arquivoAnexo" class="form-label">Selecione o arquivo:</label>
+                                <input type="file" class="form-control" id="arquivoAnexo" name="arquivo" required
+                                       accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt,.zip">
+                                <small class="text-muted">Permitidos: PDF, Imagens, DOC, TXT, ZIP (máx 16MB)</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="descricaoAnexo" class="form-label">Descrição (opcional):</label>
+                                <input type="text" class="form-control" id="descricaoAnexo" name="descricao"
+                                       placeholder="Ex: Exame de sangue, Raio-X, etc.">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i>Enviar Arquivo
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lista de Anexos -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Arquivos Anexados</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="listaAnexos">
+                            <div class="text-center py-3">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const pacienteId = {{ paciente.id }};
+
+// Carregar anexos quando abrir o modal
+document.getElementById('modalAnexos').addEventListener('shown.bs.modal', function () {
+    carregarAnexos();
+});
+
+// Upload de arquivo
+document.getElementById('formUploadAnexo').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    formData.append('usuario', 'Sistema');
+
+    try {
+        const response = await fetch(`/anexos/paciente/${pacienteId}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(result.message);
+            this.reset();
+            carregarAnexos();
+        } else {
+            alert('Erro: ' + result.error);
+        }
+    } catch (error) {
+        alert('Erro ao enviar arquivo: ' + error.message);
+    }
+});
+
+// Carregar lista de anexos
+async function carregarAnexos() {
+    try {
+        const response = await fetch(`/anexos/paciente/${pacienteId}/listar`);
+        const data = await response.json();
+
+        const container = document.getElementById('listaAnexos');
+
+        if (data.anexos.length === 0) {
+            container.innerHTML = '<p class="text-muted text-center">Nenhum arquivo anexado</p>';
+            return;
+        }
+
+        let html = '<div class="list-group">';
+        data.anexos.forEach(anexo => {
+            html += `
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <i class="fas fa-file me-2"></i>${anexo.nome_original}
+                            </h6>
+                            ${anexo.descricao ? `<p class="mb-1 text-muted small">${anexo.descricao}</p>` : ''}
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>${anexo.data_upload} |
+                                <i class="fas fa-hdd me-1"></i>${anexo.tamanho} |
+                                <i class="fas fa-user me-1"></i>${anexo.usuario_upload}
+                            </small>
+                        </div>
+                        <div class="btn-group-vertical btn-group-sm">
+                            <a href="/anexos/download/${anexo.id}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download"></i> Baixar
+                            </a>
+                            <button onclick="deletarAnexo(${anexo.id})" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+    } catch (error) {
+        document.getElementById('listaAnexos').innerHTML =
+            '<p class="text-danger text-center">Erro ao carregar anexos</p>';
+    }
+}
+
+// Deletar anexo
+async function deletarAnexo(anexoId) {
+    if (!confirm('Deseja realmente excluir este arquivo?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/anexos/deletar/${anexoId}`, {
+            method: 'POST'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(result.message);
+            carregarAnexos();
+        } else {
+            alert('Erro: ' + result.error);
+        }
+    } catch (error) {
+        alert('Erro ao deletar arquivo: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Exames - {{ paciente.nome }}</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+            color: #000;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .clinic-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .header-info {
+            font-size: 10px;
+            line-height: 1.2;
+        }
+        
+        .document-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-decoration: underline;
+        }
+        
+        .patient-info {
+            margin-bottom: 20px;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        
+        .patient-info h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .exam-content {
+            min-height: 300px;
+            margin-bottom: 30px;
+            padding: 15px;
+        }
+        
+        .exam-list {
+            border: 1px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+        
+        .exam-list h4 {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+        
+        .exam-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            background: white;
+        }
+        
+        .checkbox {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border: 1px solid #000;
+            margin-right: 10px;
+        }
+        
+        .clinical-indication {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .clinical-indication h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 300px;
+            margin: 50px auto 10px auto;
+        }
+        
+        .professional-info {
+            font-size: 11px;
+        }
+        
+        .date-location {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        
+        @media print {
+            body {
+                padding: 10px;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botão de impressão (oculto na impressão) -->
+    <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer;">
+            Imprimir Pedido
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; cursor: pointer; margin-left: 10px;">
+            Fechar
+        </button>
+    </div>
+
+    <!-- Cabeçalho da clínica -->
+    <div class="header">
+        <div class="clinic-name">{{ config.CLINIC_NAME }}</div>
+        <div class="header-info">
+            Clínica de Terapias Especializadas<br>
+            Endereço da Clínica - Telefone: (00) 0000-0000<br>
+            Email: contato@clinicaspa.com.br
+        </div>
+    </div>
+
+    <!-- Título do documento -->
+    <div class="document-title">PEDIDO DE EXAMES</div>
+
+    <!-- Data e local -->
+    <div class="date-location">
+        Data: {{ prontuario.data_atendimento.strftime('%d de %B de %Y') }}
+    </div>
+
+    <!-- Informações do paciente -->
+    <div class="patient-info">
+        <h4>DADOS DO PACIENTE</h4>
+        <div class="info-row">
+            <span><strong>Nome:</strong> {{ paciente.nome }}</span>
+            <span><strong>CPF:</strong> {{ paciente.cpf }}</span>
+        </div>
+        {% if paciente.data_nascimento %}
+        <div class="info-row">
+            <span><strong>Data de Nascimento:</strong> {{ paciente.data_nascimento.strftime('%d/%m/%Y') }}</span>
+            <span><strong>Idade:</strong> {{ (prontuario.data_atendimento.date() - paciente.data_nascimento).days // 365 }} anos</span>
+        </div>
+        {% endif %}
+        <div class="info-row">
+            <span><strong>Telefone:</strong> {{ paciente.telefone or 'Não informado' }}</span>
+            <span><strong>Data do Atendimento:</strong> {{ prontuario.data_atendimento.strftime('%d/%m/%Y') }}</span>
+        </div>
+    </div>
+
+    <!-- Indicação clínica -->
+    <div class="clinical-indication">
+        <h4>INDICAÇÃO CLÍNICA / HISTÓRIA CLÍNICA</h4>
+        <div style="white-space: pre-line; min-height: 60px;">
+            {% if prontuario.queixa_principal %}
+Queixa Principal: {{ prontuario.queixa_principal }}
+            {% endif %}
+            {% if prontuario.historia_doenca %}
+
+História da Doença: {{ prontuario.historia_doenca }}
+            {% endif %}
+            {% if prontuario.diagnostico %}
+
+Diagnóstico: {{ prontuario.diagnostico }}
+            {% endif %}
+            {% if not (prontuario.queixa_principal or prontuario.historia_doenca or prontuario.diagnostico) %}
+[Indicação clínica a ser preenchida pelo profissional]
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Lista de exames -->
+    <div class="exam-list">
+        <h4>EXAMES SOLICITADOS</h4>
+        
+        <!-- Exames Laboratoriais -->
+        <div style="margin-bottom: 20px;">
+            <h5 style="font-size: 12px; margin-bottom: 10px; text-decoration: underline;">EXAMES LABORATORIAIS</h5>
+            <div class="exam-item">
+                <span class="checkbox"></span>Hemograma completo
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Glicemia de jejum
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Colesterol total e frações
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Triglicerídeos
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Ureia e Creatinina
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Exame de Urina (EAS)
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>TSH e T4 livre
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Outro: ________________________________
+            </div>
+        </div>
+
+        <!-- Exames de Imagem -->
+        <div style="margin-bottom: 20px;">
+            <h5 style="font-size: 12px; margin-bottom: 10px; text-decoration: underline;">EXAMES DE IMAGEM</h5>
+            <div class="exam-item">
+                <span class="checkbox"></span>Radiografia de Tórax
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Radiografia de Coluna Lombar
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Ultrassonografia Abdominal
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Ecocardiograma
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Ressonância Magnética de: _______________
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Tomografia Computadorizada de: ___________
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Outro: ________________________________
+            </div>
+        </div>
+
+        <!-- Outros Exames -->
+        <div>
+            <h5 style="font-size: 12px; margin-bottom: 10px; text-decoration: underline;">OUTROS EXAMES</h5>
+            <div class="exam-item">
+                <span class="checkbox"></span>Eletrocardiograma (ECG)
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Espirometria
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Endoscopia Digestiva Alta
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Colonoscopia
+            </div>
+            <div class="exam-item">
+                <span class="checkbox"></span>Outro: ________________________________
+            </div>
+            <div class="exam-item" style="min-height: 50px;">
+                <strong>Exames específicos solicitados:</strong><br>
+                <div style="margin-top: 10px; white-space: pre-line;">
+                    {% if prontuario.observacoes %}{{ prontuario.observacoes }}{% endif %}
+                </div>
+                ___________________________________________________________<br>
+                ___________________________________________________________<br>
+                ___________________________________________________________
+            </div>
+        </div>
+    </div>
+
+    <!-- Observações adicionais -->
+    <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 30px;">
+        <h4 style="margin: 0 0 10px 0;">OBSERVAÇÕES ESPECIAIS</h4>
+        <div style="min-height: 40px;">
+            [Jejum necessário] [Preparo específico] [Medicações que devem ser suspensas] [Outras orientações]
+        </div>
+        <div style="margin-top: 10px;">
+            ___________________________________________________________________________<br>
+            ___________________________________________________________________________
+        </div>
+    </div>
+
+    <!-- Rodapé com assinatura -->
+    <div class="footer">
+        <div class="signature-line"></div>
+        <div class="professional-info">
+            {% if prontuario.profissional_nome %}
+            <strong>{{ prontuario.profissional_nome }}</strong><br>
+            {% endif %}
+            {% if prontuario.especialidade %}
+            {{ prontuario.especialidade }}<br>
+            {% endif %}
+            Registro Profissional: [Número do Registro]
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 10px; color: #666;">
+            <p><strong>IMPORTANTE:</strong> Este pedido de exames é válido em todo território nacional. 
+            Siga as orientações de preparo para cada exame. Em caso de dúvidas, entre em contato com a clínica.</p>
+        </div>
+    </div>
+</body>
+</html>

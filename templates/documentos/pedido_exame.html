@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Pedido de Exame - {{ paciente.nome }} - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between mb-3 no-print">
+                <h3><i class="fas fa-vial"></i> Pedido de Exame</h3>
+                <div>
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documento para impressão -->
+    <div class="card documento-impresso">
+        <div class="card-body p-5">
+            <!-- Cabeçalho -->
+            <div class="text-center mb-4 pb-3 border-bottom">
+                <h2 class="mb-1">{{ config.CLINIC_NAME }}</h2>
+                <p class="mb-0"><strong>CNPJ:</strong> {{ config.CLINIC_CNPJ }}</p>
+                <p class="mb-0"><strong>{{ medico }}</strong> - {{ crm }}</p>
+                <p class="mb-0"><strong>Especialidade:</strong> {{ config.MEDICO_ESPECIALIDADE }}</p>
+            </div>
+
+            <h4 class="text-center mb-4">SOLICITAÇÃO DE EXAME</h4>
+
+            <!-- Dados do Paciente -->
+            <div class="mb-4 p-3 bg-light">
+                <h5>Dados do Paciente</h5>
+                <p class="mb-1"><strong>Nome:</strong> {{ paciente.nome }}</p>
+                <p class="mb-1"><strong>CPF:</strong> {{ paciente.cpf }}</p>
+                {% if paciente.data_nascimento %}
+                <p class="mb-1"><strong>Data de Nascimento:</strong> {{ paciente.data_nascimento.strftime('%d/%m/%Y') }}</p>
+                {% endif %}
+                {% if paciente.telefone %}
+                <p class="mb-1"><strong>Telefone:</strong> {{ paciente.telefone }}</p>
+                {% endif %}
+                <p class="mb-0"><strong>Data da Solicitação:</strong> {{ prontuario.data_atendimento.strftime('%d/%m/%Y') }}</p>
+            </div>
+
+            <!-- Formulário (somente quando não salvo) -->
+            <form method="POST" action="{{ url_for('documentos.salvar_pedido_exame', prontuario_id=prontuario.id) }}" class="no-print">
+                <!-- Exames Solicitados -->
+                <div class="mb-4">
+                    <h5>Exames Solicitados:</h5>
+                    <div class="exames-lista p-3 border">
+                        {% for exame in exames %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="exames[]" value="{{ exame }}"
+                                   id="exame-{{ loop.index }}"
+                                   {% if prontuario.exames_solicitados and exame in prontuario.exames_solicitados %}checked{% endif %}>
+                            <label class="form-check-label" for="exame-{{ loop.index }}">
+                                {{ exame }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Indicação Clínica -->
+                <div class="mb-4">
+                    <h5>Indicação Clínica / Hipótese Diagnóstica:</h5>
+                    <textarea class="form-control" name="indicacao_clinica" rows="4"
+                              placeholder="Descreva a indicação clínica...">{{ prontuario.indicacao_clinica or prontuario.diagnostico or prontuario.queixa_principal or '' }}</textarea>
+                </div>
+
+                <!-- Observações -->
+                <div class="mb-4">
+                    <h5>Observações:</h5>
+                    <textarea class="form-control" name="observacoes" rows="3"
+                              placeholder="Observações adicionais...">{{ prontuario.observacoes or '' }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Salvar Pedido
+                </button>
+            </form>
+
+            <!-- Conteúdo impresso (quando já salvo) -->
+            <div class="print-only">
+                <div class="mb-4">
+                    <h5>Exames Solicitados:</h5>
+                    <div class="p-3 border">
+                        {% if prontuario.exames_solicitados %}
+                        <ul>
+                            {% for exame in prontuario.exames_solicitados.split(',') %}
+                            <li>{{ exame.strip() }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted">Nenhum exame solicitado</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Indicação Clínica / Hipótese Diagnóstica:</h5>
+                    <div class="p-3 border" style="min-height: 100px;">
+                        {{ prontuario.indicacao_clinica or prontuario.diagnostico or prontuario.queixa_principal or 'A ser preenchido...' }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Observações:</h5>
+                    <div class="p-3 border" style="min-height: 80px;">
+                        {{ prontuario.observacoes or '' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assinatura -->
+            <div class="mt-5 pt-5 text-center">
+                <div class="assinatura-linha mb-2"></div>
+                <p class="mb-0"><strong>{{ medico }}</strong></p>
+                <p class="mb-0">{{ crm }}</p>
+                <p class="mb-0">{{ config.MEDICO_ESPECIALIDADE }}</p>
+                <p class="mb-0 mt-2"><small>Data: {{ prontuario.data_atendimento.strftime('%d/%m/%Y') }}</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .print-only {
+        display: block !important;
+    }
+    .documento-impresso {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    body {
+        background: white !important;
+    }
+    .form-check {
+        display: none !important;
+    }
+}
+
+@media screen {
+    .print-only {
+        display: none;
+    }
+}
+
+.assinatura-linha {
+    width: 300px;
+    margin: 0 auto;
+    border-top: 1px solid #000;
+}
+
+.exames-lista {
+    background-color: #f8f9fa;
+}
+
+.form-check {
+    padding: 8px 0;
+    font-size: 14px;
+}
+</style>
+{% endblock %}

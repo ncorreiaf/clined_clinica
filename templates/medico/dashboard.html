@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Médico - {{ config.CLINIC_NAME }}{% endblock %}
+{% block page_title %}Dashboard - Dr. {{ usuario.nome }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card bg-primary">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ agendamentos_hoje|length }}</h3>
+                    <p>Agendamentos Hoje</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card bg-warning">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ em_espera|length }}</h3>
+                    <p>Em Espera</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card bg-success">
+                <div class="stat-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ finalizados|length }}</h3>
+                    <p>Finalizados</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card bg-info">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ total_pacientes }}</h3>
+                    <p>Total de Pacientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if proximo_paciente %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card proximo-paciente-card">
+                <div class="card-body">
+                    <h4><i class="fas fa-user-md"></i> Próximo Paciente</h4>
+                    <div class="paciente-info">
+                        <h2>{{ proximo_paciente.paciente_ref.nome }}</h2>
+                        <p><strong>Horário:</strong> {{ proximo_paciente.data_agendamento.strftime('%H:%M') }}</p>
+                        <p><strong>Serviço:</strong> {{ proximo_paciente.servico }}</p>
+                        {% if proximo_paciente.observacoes %}
+                        <p><strong>Observações:</strong> {{ proximo_paciente.observacoes }}</p>
+                        {% endif %}
+                        <div class="mt-3">
+                            <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=proximo_paciente.id, status='em_atendimento') }}"
+                               class="btn btn-success btn-lg">
+                                <i class="fas fa-play"></i> Iniciar Atendimento
+                            </a>
+                            <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=proximo_paciente.paciente_id) }}"
+                               class="btn btn-primary btn-lg">
+                                <i class="fas fa-file-medical"></i> Ver Prontuário
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Agendamentos de Hoje</h3>
+                </div>
+                <div class="card-body">
+                    {% if agendamentos_hoje %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Horário</th>
+                                        <th>Paciente</th>
+                                        <th>Serviço</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for agendamento in agendamentos_hoje %}
+                                    <tr>
+                                        <td>{{ agendamento.data_agendamento.strftime('%H:%M') }}</td>
+                                        <td>{{ agendamento.paciente_ref.nome }}</td>
+                                        <td>{{ agendamento.servico }}</td>
+                                        <td>
+                                            {% if agendamento.status == 'em_atendimento' %}
+                                                <span class="badge bg-success">Em Atendimento</span>
+                                            {% elif agendamento.status == 'em_espera' %}
+                                                <span class="badge bg-warning">Em Espera</span>
+                                            {% elif agendamento.status == 'finalizado' %}
+                                                <span class="badge bg-secondary">Finalizado</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">Agendado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=agendamento.paciente_id) }}"
+                                               class="btn btn-sm btn-primary"
+                                               title="Ver Prontuário">
+                                                <i class="fas fa-file-medical"></i>
+                                            </a>
+                                            {% if agendamento.status != 'finalizado' %}
+                                            <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='em_atendimento') }}"
+                                               class="btn btn-sm btn-success"
+                                               title="Iniciar Atendimento">
+                                                <i class="fas fa-play"></i>
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x mb-3"></i><br>
+                            Nenhum agendamento para hoje
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clock"></i> Fila de Espera</h3>
+                </div>
+                <div class="card-body">
+                    {% if em_espera %}
+                        <div class="list-group">
+                            {% for agendamento in em_espera %}
+                                <div class="list-group-item">
+                                    <h5>{{ agendamento.paciente_ref.nome }}</h5>
+                                    <p class="mb-1"><strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - {{ agendamento.servico }}</p>
+                                    <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='em_atendimento') }}"
+                                       class="btn btn-sm btn-success mt-2">
+                                        <i class="fas fa-play"></i> Chamar
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i><br>
+                            Nenhum paciente em espera
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3><i class="fas fa-link"></i> Acesso Rápido</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('prontuario.lista_pacientes') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-users"></i> Lista de Pacientes
+                        </a>
+                        <a href="{{ url_for('agendamento.lista_agendamentos') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar"></i> Todos os Agendamentos
+                        </a>
+                        <a href="{{ url_for('chamados.painel_tv') }}" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-tv"></i> Abrir Painel de TV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        border-radius: 15px;
+        padding: 25px;
+        color: white;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        font-size: 3rem;
+        margin-right: 20px;
+        opacity: 0.8;
+    }
+
+    .stat-content h3 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .stat-content p {
+        margin: 0;
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .proximo-paciente-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .proximo-paciente-card h4 {
+        color: white;
+        opacity: 0.9;
+        margin-bottom: 15px;
+    }
+
+    .proximo-paciente-card h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .proximo-paciente-card p {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+    }
+
+    .card {
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 20px;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+    }
+
+    .list-group-item {
+        border-left: 4px solid #667eea;
+        margin-bottom: 10px;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Configurar Metas - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Configurar Metas</h1>
+        <p class="text-muted">Defina as metas de faturamento, atendimentos e novos clientes por mês</p>
+    </div>
+    <div>
+        <a href="{{ url_for('metas.dashboard_metas') }}" class="btn btn-outline-primary">
+            <i class="fas fa-chart-line"></i> Ver Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-4">
+                    <i class="fas fa-bullseye text-primary"></i>
+                    Nova Meta
+                </h5>
+
+                <form method="POST" action="{{ url_for('metas.configurar_metas') }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="mes" class="form-label">Mês</label>
+                            <select class="form-select" id="mes" name="mes" required>
+                                <option value="">Selecione...</option>
+                                <option value="1" {% if hoje.month == 1 %}selected{% endif %}>Janeiro</option>
+                                <option value="2" {% if hoje.month == 2 %}selected{% endif %}>Fevereiro</option>
+                                <option value="3" {% if hoje.month == 3 %}selected{% endif %}>Março</option>
+                                <option value="4" {% if hoje.month == 4 %}selected{% endif %}>Abril</option>
+                                <option value="5" {% if hoje.month == 5 %}selected{% endif %}>Maio</option>
+                                <option value="6" {% if hoje.month == 6 %}selected{% endif %}>Junho</option>
+                                <option value="7" {% if hoje.month == 7 %}selected{% endif %}>Julho</option>
+                                <option value="8" {% if hoje.month == 8 %}selected{% endif %}>Agosto</option>
+                                <option value="9" {% if hoje.month == 9 %}selected{% endif %}>Setembro</option>
+                                <option value="10" {% if hoje.month == 10 %}selected{% endif %}>Outubro</option>
+                                <option value="11" {% if hoje.month == 11 %}selected{% endif %}>Novembro</option>
+                                <option value="12" {% if hoje.month == 12 %}selected{% endif %}>Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ano" class="form-label">Ano</label>
+                            <input type="number" class="form-control" id="ano" name="ano"
+                                   value="{{ hoje.year }}" min="2024" max="2030" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="meta_faturamento" class="form-label">
+                            <i class="fas fa-dollar-sign text-success"></i>
+                            Meta de Faturamento (R$)
+                        </label>
+                        <input type="number" class="form-control" id="meta_faturamento"
+                               name="meta_faturamento" step="0.01" min="0"
+                               placeholder="Ex: 50000.00">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="meta_atendimentos" class="form-label">
+                            <i class="fas fa-user-check text-info"></i>
+                            Meta de Atendimentos
+                        </label>
+                        <input type="number" class="form-control" id="meta_atendimentos"
+                               name="meta_atendimentos" min="0"
+                               placeholder="Ex: 150">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="meta_novos_clientes" class="form-label">
+                            <i class="fas fa-user-plus text-warning"></i>
+                            Meta de Novos Clientes
+                        </label>
+                        <input type="number" class="form-control" id="meta_novos_clientes"
+                               name="meta_novos_clientes" min="0"
+                               placeholder="Ex: 30">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar Meta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-4">
+                    <i class="fas fa-list text-primary"></i>
+                    Metas Configuradas
+                </h5>
+
+                {% if metas_existentes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Faturamento</th>
+                                <th>Atendimentos</th>
+                                <th>Novos Clientes</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for meta in metas_existentes %}
+                            <tr>
+                                <td>
+                                    <strong>
+                                        {% set meses = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                                                       'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'] %}
+                                        {{ meses[meta.mes] }}/{{ meta.ano }}
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">
+                                        R$ {{ "%.2f"|format(meta.meta_faturamento) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ meta.meta_atendimentos }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">
+                                        {{ meta.meta_novos_clientes }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('metas.excluir_meta', meta_id=meta.id) }}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Deseja excluir esta meta?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Nenhuma meta configurada ainda. Configure sua primeira meta acima!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-3 text-muted">
+                    <i class="fas fa-lightbulb"></i> Dicas
+                </h6>
+                <ul class="small">
+                    <li>Configure metas realistas baseadas no histórico da clínica</li>
+                    <li>Revise e ajuste as metas mensalmente</li>
+                    <li>Use o dashboard para acompanhar o progresso em tempo real</li>
+                    <li>Metas desafiadoras motivam a equipe!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

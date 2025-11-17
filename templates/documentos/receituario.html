@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Receituário - {{ paciente.nome }} - {{ config.CLINIC_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between mb-3 no-print">
+                <h3><i class="fas fa-prescription"></i> Receituário Médico</h3>
+                <div>
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documento para impressão -->
+    <div class="card documento-impresso">
+        <div class="card-body p-5">
+            <!-- Cabeçalho -->
+            <div class="text-center mb-4 pb-3 border-bottom">
+                <h2 class="mb-1">{{ config.CLINIC_NAME }}</h2>
+                <p class="mb-0"><strong>CNPJ:</strong> {{ config.CLINIC_CNPJ }}</p>
+                <p class="mb-0"><strong>{{ medico }}</strong> - {{ crm }}</p>
+                <p class="mb-0"><strong>Especialidade:</strong> {{ config.MEDICO_ESPECIALIDADE }}</p>
+            </div>
+
+            <h4 class="text-center mb-4">RECEITUÁRIO MÉDICO</h4>
+
+            <!-- Dados do Paciente -->
+            <div class="mb-4">
+                <p class="mb-1"><strong>Paciente:</strong> {{ paciente.nome }}</p>
+                <p class="mb-1"><strong>CPF:</strong> {{ paciente.cpf }}</p>
+                {% if paciente.data_nascimento %}
+                <p class="mb-1"><strong>Data de Nascimento:</strong> {{ paciente.data_nascimento.strftime('%d/%m/%Y') }}</p>
+                {% endif %}
+                <p class="mb-1"><strong>Data:</strong> {{ prontuario.data_atendimento.strftime('%d/%m/%Y') }}</p>
+            </div>
+
+            <!-- Formulário de prescrição (somente quando não salvo) -->
+            <div class="no-print">
+                <form method="POST" action="{{ url_for('documentos.salvar_receituario', prontuario_id=prontuario.id) }}">
+                    <div class="mb-3">
+                        <label for="medicamentos" class="form-label"><strong>Medicamentos:</strong></label>
+                        <textarea class="form-control" id="medicamentos" name="medicamentos" rows="6" required>{{ prontuario.prescricao or '' }}</textarea>
+                        <small class="form-text text-muted">Liste os medicamentos prescritos, um por linha.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="posologia" class="form-label"><strong>Posologia e Modo de Usar:</strong></label>
+                        <textarea class="form-control" id="posologia" name="posologia" rows="4"></textarea>
+                        <small class="form-text text-muted">Instruções de uso dos medicamentos.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label"><strong>Observações:</strong></label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Salvar Receituário
+                    </button>
+                </form>
+            </div>
+
+            <!-- Conteúdo impresso (quando já salvo) -->
+            <div class="print-only">
+                <div class="mb-4">
+                    <h5>Medicamentos Prescritos:</h5>
+                    <div class="prescricao-conteudo">
+                        {{ prontuario.prescricao or 'Aguardando preenchimento...' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assinatura -->
+            <div class="mt-5 pt-5 text-center">
+                <div class="assinatura-linha mb-2"></div>
+                <p class="mb-0"><strong>{{ medico }}</strong></p>
+                <p class="mb-0">{{ crm }}</p>
+                <p class="mb-0">{{ config.MEDICO_ESPECIALIDADE }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .print-only {
+        display: block !important;
+    }
+    .documento-impresso {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    body {
+        background: white !important;
+    }
+    .card {
+        page-break-inside: avoid;
+    }
+}
+
+@media screen {
+    .print-only {
+        display: none;
+    }
+}
+
+.assinatura-linha {
+    width: 300px;
+    margin: 0 auto;
+    border-top: 1px solid #000;
+}
+
+.prescricao-conteudo {
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
