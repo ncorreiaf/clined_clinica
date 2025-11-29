@@ -36,12 +36,12 @@ def painel_tv():
 def api_atendimentos():
     """
     API para buscar atendimentos em tempo real
-    Retorna o atendimento atual e os próximos 3
+    Retorna todos os atendimentos em andamento e os próximos
     """
-    # Buscar atendimento em andamento (sem filtro de data)
-    atendimento_atual = Agendamento.query.filter(
+    # Buscar TODOS os atendimentos em andamento
+    atendimentos_em_curso = Agendamento.query.filter(
         Agendamento.status == 'em_atendimento'
-    ).first()
+    ).order_by(Agendamento.data_agendamento).all()
 
     # Buscar próximos atendimentos (agendados ou em espera)
     proximos = Agendamento.query.filter(
@@ -49,13 +49,13 @@ def api_atendimentos():
             Agendamento.status == 'agendado',
             Agendamento.status == 'em_espera'
         )
-    ).order_by(Agendamento.data_agendamento).limit(3).all()
+    ).order_by(Agendamento.data_agendamento).limit(5).all()
 
     # Buscar informações do profissional
     profissional = Profissional.query.filter_by(ativo=True).first()
 
     resultado = {
-        'atual': None,
+        'em_atendimento': [],
         'proximos': [],
         'profissional': {
             'nome': profissional.nome if profissional else 'N/A',
@@ -64,18 +64,20 @@ def api_atendimentos():
         }
     }
 
-    # Formatar atendimento atual
-    if atendimento_atual:
-        resultado['atual'] = {
-            'paciente': atendimento_atual.paciente_ref.nome,
-            'servico': atendimento_atual.servico,
-            'horario': atendimento_atual.data_agendamento.strftime('%H:%M'),
+    # Formatar atendimentos em curso
+    for atendimento in atendimentos_em_curso:
+        resultado['em_atendimento'].append({
+            'id': atendimento.id,
+            'paciente': atendimento.paciente_ref.nome,
+            'servico': atendimento.servico,
+            'horario': atendimento.data_agendamento.strftime('%H:%M'),
             'status': 'Em Atendimento'
-        }
+        })
 
     # Formatar próximos atendimentos
     for agendamento in proximos:
         resultado['proximos'].append({
+            'id': agendamento.id,
             'paciente': agendamento.paciente_ref.nome,
             'servico': agendamento.servico,
             'horario': agendamento.data_agendamento.strftime('%H:%M'),

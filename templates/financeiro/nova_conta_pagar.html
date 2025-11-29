@@ -72,6 +72,22 @@
                             <input type="date" class="form-control" id="data_vencimento" name="data_vencimento" required>
                         </div>
                         <div class="col-md-6">
+                            <label for="forma_pagamento" class="form-label">Forma de Pagamento *</label>
+                            <select class="form-select" id="forma_pagamento" name="forma_pagamento" required>
+                                <option value="">Selecione a forma</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="PIX">PIX</option>
+                                <option value="Débito">Cartão de Débito</option>
+                                <option value="Crédito">Cartão de Crédito</option>
+                                <option value="Transferência">Transferência</option>
+                                <option value="Boleto">Boleto</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
                             <label for="centro_custo" class="form-label">Centro de Custo</label>
                             <input type="text" class="form-control" id="centro_custo" name="centro_custo"
                                    placeholder="Ex: Administração, Clínica, Marketing">

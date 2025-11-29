@@ -118,10 +118,13 @@
                                 </td>
                                 <td>
                                     {% if conta.status == 'pendente' %}
-                                    <a href="{{ url_for('financeiro.receber_conta', conta_id=conta.id) }}" 
-                                       class="btn btn-success btn-sm">
-                                        <i class="fas fa-check me-1"></i>Receber
-                                    </a>
+                                    <form action="{{ url_for('financeiro.receber_conta', conta_id=conta.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-check me-1"></i>Pagar
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted small">{{ conta.forma_pagamento }}</span>
                                     {% endif %}
                                 </td>
                             </tr>

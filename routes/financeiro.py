@@ -8,6 +8,7 @@ from models.models import db, ContaReceber, ContaPagar, FluxoCaixa, Paciente, Pr
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, and_, or_
 from decimal import Decimal
+from utils.auth_helpers import get_usuario_atual
 
 # Criação do Blueprint para financeiro
 financeiro_bp = Blueprint('financeiro', __name__)
@@ -102,35 +103,59 @@ def nova_conta_receber():
         try:
             paciente_id = request.form['paciente_id']
             agendamento_id = request.form.get('agendamento_id') or None
-            descricao = request.form['descricao']
+            descricao = request.form['descricao'].strip()
             valor = Decimal(request.form['valor'])
             data_vencimento = datetime.strptime(request.form['data_vencimento'], '%Y-%m-%d').date()
-            observacoes = request.form.get('observacoes', '')
-            
+            observacoes = request.form.get('observacoes', '').strip()
+            forma_pagamento = request.form.get('forma_pagamento', '').strip()
+
+            # Criar a conta
             nova_conta = ContaReceber(
                 paciente_id=paciente_id,
                 agendamento_id=agendamento_id,
                 descricao=descricao,
                 valor=valor,
                 data_vencimento=data_vencimento,
-                observacoes=observacoes
+                observacoes=observacoes,
+                forma_pagamento=forma_pagamento
             )
-            
+
+            # Se for cortesia, já marcar como concluída
+            if forma_pagamento == 'Cortesia':
+                nova_conta.status = 'pago'
+                nova_conta.data_pagamento = date.today()
+
+                # Registrar no fluxo de caixa como cortesia
+                paciente = Paciente.query.get(paciente_id)
+                movimento = FluxoCaixa(
+                    data_movimento=date.today(),
+                    tipo='entrada',
+                    categoria='Cortesia',
+                    descricao=f'Cortesia: {descricao}',
+                    valor=valor,
+                    recepcionista=paciente.nome if paciente else '',
+                    forma_pagamento='Cortesia'
+                )
+                db.session.add(movimento)
+                flash('Conta criada e registrada como cortesia (gratuito)!', 'success')
+            else:
+                # Conta normal fica como pendente
+                flash('Conta a receber criada com sucesso! Clique em "Pagar" na lista quando receber.', 'success')
+
             db.session.add(nova_conta)
             db.session.commit()
-            
-            flash('Conta a receber criada com sucesso!', 'success')
+
             return redirect(url_for('financeiro.contas_receber'))
-            
+
         except Exception as e:
             flash(f'Erro ao criar conta a receber: {str(e)}', 'error')
             db.session.rollback()
-    
+
     pacientes = Paciente.query.order_by(Paciente.nome).all()
     agendamentos = Agendamento.query.filter(Agendamento.status == 'finalizado').all()
-    
-    return render_template('financeiro/nova_conta_receber.html', 
-                         pacientes=pacientes, 
+
+    return render_template('financeiro/nova_conta_receber.html',
+                         pacientes=pacientes,
                          agendamentos=agendamentos)
 
 @financeiro_bp.route('/contas-pagar')
@@ -158,20 +183,22 @@ def nova_conta_pagar():
     """
     if request.method == 'POST':
         try:
-            fornecedor = request.form['fornecedor']
-            descricao = request.form['descricao']
+            fornecedor = request.form['fornecedor'].strip()
+            descricao = request.form['descricao'].strip()
             valor = Decimal(request.form['valor'])
             data_vencimento = datetime.strptime(request.form['data_vencimento'], '%Y-%m-%d').date()
-            categoria = request.form['categoria']
-            centro_custo = request.form.get('centro_custo', '')
-            observacoes = request.form.get('observacoes', '')
-            
+            categoria = request.form['categoria'].strip()
+            centro_custo = request.form.get('centro_custo', '').strip()
+            observacoes = request.form.get('observacoes', '').strip()
+            forma_pagamento = request.form.get('forma_pagamento', '').strip()
+
             nova_conta = ContaPagar(
                 fornecedor=fornecedor,
                 descricao=descricao,
                 valor=valor,
                 data_vencimento=data_vencimento,
                 categoria=categoria,
+                forma_pagamento=forma_pagamento,
                 centro_custo=centro_custo,
                 observacoes=observacoes
             )
@@ -195,17 +222,29 @@ def fluxo_caixa():
     """
     data_inicio = request.args.get('data_inicio', date.today().replace(day=1).strftime('%Y-%m-%d'))
     data_fim = request.args.get('data_fim', date.today().strftime('%Y-%m-%d'))
-    
+
     movimentos = FluxoCaixa.query.filter(
         and_(FluxoCaixa.data_movimento >= data_inicio,
              FluxoCaixa.data_movimento <= data_fim)
     ).order_by(FluxoCaixa.data_movimento.desc()).all()
-    
+
+    # Preencher responsável dinamicamente se estiver vazio
+    for movimento in movimentos:
+        if not movimento.recepcionista or movimento.recepcionista == '':
+            if movimento.conta_receber_id:
+                conta_receber = ContaReceber.query.get(movimento.conta_receber_id)
+                if conta_receber and conta_receber.paciente_conta:
+                    movimento.recepcionista = conta_receber.paciente_conta.nome
+            elif movimento.conta_pagar_id:
+                conta_pagar = ContaPagar.query.get(movimento.conta_pagar_id)
+                if conta_pagar:
+                    movimento.recepcionista = conta_pagar.fornecedor
+
     # Calcular totais
     total_entradas = sum(m.valor for m in movimentos if m.tipo == 'entrada')
     total_saidas = sum(m.valor for m in movimentos if m.tipo == 'saida')
     saldo = total_entradas - total_saidas
-    
+
     return render_template('financeiro/fluxo_caixa.html',
                          movimentos=movimentos,
                          data_inicio=data_inicio,
@@ -215,16 +254,17 @@ def fluxo_caixa():
                          saldo=saldo)
 
 
-@financeiro_bp.route('/pagar-conta/<int:conta_id>')
+@financeiro_bp.route('/pagar-conta/<int:conta_id>', methods=['POST'])
 def pagar_conta(conta_id):
     """
     Marcar conta como paga
     """
     try:
         conta = ContaPagar.query.get_or_404(conta_id)
+
         conta.status = 'pago'
         conta.data_pagamento = date.today()
-        
+
         # Registrar no fluxo de caixa
         movimento = FluxoCaixa(
             data_movimento=date.today(),
@@ -232,49 +272,59 @@ def pagar_conta(conta_id):
             categoria=conta.categoria,
             descricao=f'Pagamento: {conta.descricao}',
             valor=conta.valor,
-            conta_pagar_id=conta.id
+            conta_pagar_id=conta.id,
+            recepcionista=conta.fornecedor,
+            forma_pagamento=conta.forma_pagamento
         )
-        
+
         db.session.add(movimento)
         db.session.commit()
-        
-        flash('Conta marcada como paga!', 'success')
-        
+
+        flash(f'Conta marcada como paga via {conta.forma_pagamento}!', 'success')
+
     except Exception as e:
         flash(f'Erro ao pagar conta: {str(e)}', 'error')
         db.session.rollback()
-    
+
     return redirect(url_for('financeiro.contas_pagar'))
 
-@financeiro_bp.route('/receber-conta/<int:conta_id>')
+@financeiro_bp.route('/receber-conta/<int:conta_id>', methods=['POST'])
 def receber_conta(conta_id):
     """
     Marcar conta como recebida
     """
     try:
         conta = ContaReceber.query.get_or_404(conta_id)
+
         conta.status = 'pago'
         conta.data_pagamento = date.today()
-        
+
         # Registrar no fluxo de caixa
+        if conta.forma_pagamento == 'Cortesia':
+            categoria = 'Cortesia'
+        else:
+            categoria = 'Receita de Serviços'
+
         movimento = FluxoCaixa(
             data_movimento=date.today(),
             tipo='entrada',
-            categoria='Receita de Serviços',
+            categoria=categoria,
             descricao=f'Recebimento: {conta.descricao}',
             valor=conta.valor,
-            conta_receber_id=conta.id
+            conta_receber_id=conta.id,
+            recepcionista=conta.paciente_conta.nome,
+            forma_pagamento=conta.forma_pagamento
         )
-        
+
         db.session.add(movimento)
         db.session.commit()
-        
-        flash('Conta marcada como recebida!', 'success')
-        
+
+        flash(f'Pagamento recebido via {conta.forma_pagamento}!', 'success')
+
     except Exception as e:
         flash(f'Erro ao receber conta: {str(e)}', 'error')
         db.session.rollback()
-    
+
     return redirect(url_for('financeiro.contas_receber'))
 
 

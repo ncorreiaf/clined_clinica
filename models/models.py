@@ -14,16 +14,25 @@ class Paciente(db.Model):
     Modelo para armazenar informações dos pacientes
     """
     __tablename__ = 'pacientes'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
-    cpf = db.Column(db.String(14), unique=True, nullable=False)
-    telefone = db.Column(db.String(20))
+    cpf = db.Column(db.String(14), unique=True)
+    telefone = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(100))
     data_nascimento = db.Column(db.Date)
+    idade = db.Column(db.Integer)
+    naturalidade = db.Column(db.String(100))
+    estado_civil = db.Column(db.String(50))
+    religiao = db.Column(db.String(50))
+    profissao = db.Column(db.String(100))
+    filiacao_pai = db.Column(db.String(100))
+    filiacao_mae = db.Column(db.String(100))
     endereco = db.Column(db.Text)
+    bairro = db.Column(db.String(100))
+    cidade = db.Column(db.String(100))
     data_cadastro = db.Column(db.DateTime, default=datetime.now)
-    
+
     # Relacionamentos
     agendamentos = db.relationship('Agendamento', backref='paciente_ref', lazy=True)
     prontuarios = db.relationship('Prontuario', backref='paciente_ref', lazy=True)
@@ -221,7 +230,7 @@ class ContaPagar(db.Model):
     Modelo para contas a pagar
     """
     __tablename__ = 'contas_pagar'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     fornecedor = db.Column(db.String(100), nullable=False)
     descricao = db.Column(db.String(200), nullable=False)
@@ -231,6 +240,7 @@ class ContaPagar(db.Model):
     status = db.Column(db.String(20), default='pendente')  # pendente, pago, vencido
     categoria = db.Column(db.String(50))  # aluguel, material, salario, etc
     centro_custo = db.Column(db.String(50))
+    forma_pagamento = db.Column(db.String(50))
     observacoes = db.Column(db.Text)
     data_criacao = db.Column(db.DateTime, default=datetime.now)
 

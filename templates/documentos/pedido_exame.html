@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Pedido de Exame - {{ paciente.nome }} - {{ config.CLINIC_NAME }}{% endblock %}
+{% block title %}Solicitação de Exame - {{ paciente.nome }} - {{ config.CLINIC_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between mb-3 no-print">
-                <h3><i class="fas fa-vial"></i> Pedido de Exame</h3>
-                <div>
+            <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+                <h3><i class="fas fa-vial"></i> Solicitação de Exame</h3>
+                <div class="btn-group">
                     <button onclick="window.print()" class="btn btn-primary">
                         <i class="fas fa-print"></i> Imprimir
                     </button>
@@ -20,154 +20,258 @@
         </div>
     </div>
 
-    <!-- Documento para impressão -->
-    <div class="card documento-impresso">
-        <div class="card-body p-5">
-            <!-- Cabeçalho -->
-            <div class="text-center mb-4 pb-3 border-bottom">
-                <h2 class="mb-1">{{ config.CLINIC_NAME }}</h2>
-                <p class="mb-0"><strong>CNPJ:</strong> {{ config.CLINIC_CNPJ }}</p>
-                <p class="mb-0"><strong>{{ medico }}</strong> - {{ crm }}</p>
-                <p class="mb-0"><strong>Especialidade:</strong> {{ config.MEDICO_ESPECIALIDADE }}</p>
-            </div>
-
-            <h4 class="text-center mb-4">SOLICITAÇÃO DE EXAME</h4>
-
-            <!-- Dados do Paciente -->
-            <div class="mb-4 p-3 bg-light">
-                <h5>Dados do Paciente</h5>
-                <p class="mb-1"><strong>Nome:</strong> {{ paciente.nome }}</p>
-                <p class="mb-1"><strong>CPF:</strong> {{ paciente.cpf }}</p>
-                {% if paciente.data_nascimento %}
-                <p class="mb-1"><strong>Data de Nascimento:</strong> {{ paciente.data_nascimento.strftime('%d/%m/%Y') }}</p>
-                {% endif %}
-                {% if paciente.telefone %}
-                <p class="mb-1"><strong>Telefone:</strong> {{ paciente.telefone }}</p>
-                {% endif %}
-                <p class="mb-0"><strong>Data da Solicitação:</strong> {{ prontuario.data_atendimento.strftime('%d/%m/%Y') }}</p>
-            </div>
-
-            <!-- Formulário (somente quando não salvo) -->
-            <form method="POST" action="{{ url_for('documentos.salvar_pedido_exame', prontuario_id=prontuario.id) }}" class="no-print">
-                <!-- Exames Solicitados -->
-                <div class="mb-4">
-                    <h5>Exames Solicitados:</h5>
-                    <div class="exames-lista p-3 border">
-                        {% for exame in exames %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="exames[]" value="{{ exame }}"
-                                   id="exame-{{ loop.index }}"
-                                   {% if prontuario.exames_solicitados and exame in prontuario.exames_solicitados %}checked{% endif %}>
-                            <label class="form-check-label" for="exame-{{ loop.index }}">
-                                {{ exame }}
-                            </label>
-                        </div>
-                        {% endfor %}
-                    </div>
+    <!-- Documento -->
+    <div class="documento-container">
+        <div class="documento-impresso">
+            <div class="documento-body">
+                <!-- Cabeçalho -->
+                <div class="cabecalho text-center">
+                    <h2>{{ config.CLINIC_NAME }}</h2>
+                    <p>CNPJ: {{ config.CLINIC_CNPJ }}</p>
+                    <p>{{ config.MEDICO_NOME }} - {{ config.MEDICO_CRM }}</p>
+                    <p>{{ config.MEDICO_ESPECIALIDADE }}</p>
                 </div>
 
-                <!-- Indicação Clínica -->
-                <div class="mb-4">
-                    <h5>Indicação Clínica / Hipótese Diagnóstica:</h5>
-                    <textarea class="form-control" name="indicacao_clinica" rows="4"
-                              placeholder="Descreva a indicação clínica...">{{ prontuario.indicacao_clinica or prontuario.diagnostico or prontuario.queixa_principal or '' }}</textarea>
+                <h4 class="titulo-documento text-center">SOLICITAÇÃO DE EXAME</h4>
+
+                <!-- Dados do Paciente -->
+                <div class="dados-paciente">
+                    <p><strong>Paciente:</strong> {{ paciente.nome }}</p>
+                    <p><strong>CPF:</strong> {{ paciente.cpf }}</p>
+                    <p><strong>Data:</strong> {{ prontuario.data_atendimento.strftime('%d/%m/%Y') }}</p>
                 </div>
 
-                <!-- Observações -->
-                <div class="mb-4">
-                    <h5>Observações:</h5>
-                    <textarea class="form-control" name="observacoes" rows="3"
-                              placeholder="Observações adicionais...">{{ prontuario.observacoes or '' }}</textarea>
+                <!-- Campo Editável -->
+                <div class="campo-editavel no-print-border" contenteditable="true" id="conteudoPedido"></div>
+
+                <!-- Assinatura -->
+                <div class="assinatura text-center">
+                    <div class="linha-assinatura"></div>
+                    <p><strong>{{ config.MEDICO_NOME }}</strong></p>
+                    <p>{{ config.MEDICO_CRM }}</p>
+                    <p>{{ config.MEDICO_ESPECIALIDADE }}</p>
                 </div>
-
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save"></i> Salvar Pedido
-                </button>
-            </form>
-
-            <!-- Conteúdo impresso (quando já salvo) -->
-            <div class="print-only">
-                <div class="mb-4">
-                    <h5>Exames Solicitados:</h5>
-                    <div class="p-3 border">
-                        {% if prontuario.exames_solicitados %}
-                        <ul>
-                            {% for exame in prontuario.exames_solicitados.split(',') %}
-                            <li>{{ exame.strip() }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted">Nenhum exame solicitado</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <h5>Indicação Clínica / Hipótese Diagnóstica:</h5>
-                    <div class="p-3 border" style="min-height: 100px;">
-                        {{ prontuario.indicacao_clinica or prontuario.diagnostico or prontuario.queixa_principal or 'A ser preenchido...' }}
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <h5>Observações:</h5>
-                    <div class="p-3 border" style="min-height: 80px;">
-                        {{ prontuario.observacoes or '' }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Assinatura -->
-            <div class="mt-5 pt-5 text-center">
-                <div class="assinatura-linha mb-2"></div>
-                <p class="mb-0"><strong>{{ medico }}</strong></p>
-                <p class="mb-0">{{ crm }}</p>
-                <p class="mb-0">{{ config.MEDICO_ESPECIALIDADE }}</p>
-                <p class="mb-0 mt-2"><small>Data: {{ prontuario.data_atendimento.strftime('%d/%m/%Y') }}</small></p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.documento-container {
+    max-width: 21cm;
+    margin: 0 auto;
+    background: white;
+}
+
+.documento-impresso {
+    background: white;
+    padding: 2cm;
+    min-height: 29.7cm;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.documento-body {
+    font-family: 'Times New Roman', serif;
+    font-size: 12pt;
+    line-height: 1.6;
+    color: #000;
+}
+
+.cabecalho {
+    border-bottom: 2px solid #000;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.cabecalho h2 {
+    font-size: 18pt;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.cabecalho p {
+    margin: 2px 0;
+    font-size: 11pt;
+}
+
+.titulo-documento {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 25px 0;
+    text-decoration: underline;
+}
+
+.dados-paciente {
+    margin-bottom: 30px;
+    font-size: 11pt;
+}
+
+.dados-paciente p {
+    margin: 5px 0;
+}
+
+.campo-editavel {
+    min-height: 400px;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    margin-bottom: 60px;
+    background: #fafafa;
+    outline: none;
+    white-space: pre-wrap;
+    font-family: 'Times New Roman', serif;
+    font-size: 12pt;
+    line-height: 1.8;
+}
+
+.campo-editavel:focus {
+    border-color: #007bff;
+    background: white;
+}
+
+.campo-editavel:empty:before {
+    content: 'Clique aqui para escrever a solicitação de exame...';
+    color: #999;
+    font-style: italic;
+}
+
+.assinatura {
+    margin-top: 80px;
+}
+
+.linha-assinatura {
+    width: 300px;
+    margin: 0 auto 10px;
+    border-top: 1px solid #000;
+}
+
+.assinatura p {
+    margin: 3px 0;
+    font-size: 11pt;
+}
+
+/* Impressão */
 @media print {
+    * {
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+
+    body, html {
+        background: white !important;
+        width: 100%;
+        height: 100%;
+    }
+
     .no-print {
         display: none !important;
     }
-    .print-only {
-        display: block !important;
+
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
-    .documento-impresso {
-        border: none !important;
+
+    .documento-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
         box-shadow: none !important;
     }
-    body {
-        background: white !important;
+
+    .documento-impresso {
+        padding: 2cm !important;
+        min-height: 29.7cm !important;
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: none !important;
     }
-    .form-check {
-        display: none !important;
+
+    .documento-body {
+        font-family: 'Times New Roman', serif !important;
+        font-size: 12pt !important;
+        line-height: 1.6 !important;
+        color: #000 !important;
+    }
+
+    .cabecalho {
+        border-bottom: 2px solid #000 !important;
+        padding-bottom: 15px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .cabecalho h2 {
+        font-size: 18pt !important;
+        margin-bottom: 5px !important;
+        font-weight: bold !important;
+    }
+
+    .cabecalho p {
+        margin: 2px 0 !important;
+        font-size: 11pt !important;
+    }
+
+    .titulo-documento {
+        font-size: 14pt !important;
+        font-weight: bold !important;
+        margin: 25px 0 !important;
+        text-decoration: underline !important;
+    }
+
+    .dados-paciente {
+        margin-bottom: 30px !important;
+        font-size: 11pt !important;
+    }
+
+    .dados-paciente p {
+        margin: 5px 0 !important;
+    }
+
+    .campo-editavel {
+        border: none !important;
+        background: white !important;
+        padding: 0 !important;
+        margin-bottom: 60px !important;
+        min-height: auto !important;
+        font-family: 'Times New Roman', serif !important;
+        font-size: 12pt !important;
+        line-height: 1.8 !important;
+        white-space: pre-wrap !important;
+    }
+
+    .assinatura {
+        margin-top: 80px !important;
+    }
+
+    .linha-assinatura {
+        width: 300px !important;
+        margin: 0 auto 10px !important;
+        border-top: 1px solid #000 !important;
+    }
+
+    .assinatura p {
+        margin: 3px 0 !important;
+        font-size: 11pt !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 0;
     }
 }
 
 @media screen {
-    .print-only {
-        display: none;
+    .no-print {
+        display: block !important;
     }
-}
-
-.assinatura-linha {
-    width: 300px;
-    margin: 0 auto;
-    border-top: 1px solid #000;
-}
-
-.exames-lista {
-    background-color: #f8f9fa;
-}
-
-.form-check {
-    padding: 8px 0;
-    font-size: 14px;
 }
 </style>
 {% endblock %}

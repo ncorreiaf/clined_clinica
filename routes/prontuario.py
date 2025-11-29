@@ -62,15 +62,15 @@ def editar_prontuario(paciente_id):
     
     if request.method == 'POST':
         try:
-            # Coleta dados do formulário
-            especialidade = request.form['especialidade']
-            queixa_principal = request.form['queixa_principal']
-            historia_doenca = request.form['historia_doenca']
-            exame_fisico = request.form['exame_fisico']
-            diagnostico = request.form['diagnostico']
-            prescricao = request.form['prescricao']
-            observacoes = request.form['observacoes']
-            profissional_nome = request.form['profissional_nome']
+            # Coleta dados do formulário com TRIM
+            especialidade = request.form['especialidade'].strip()
+            queixa_principal = request.form['queixa_principal'].strip()
+            historia_doenca = request.form['historia_doenca'].strip()
+            exame_fisico = request.form['exame_fisico'].strip()
+            diagnostico = request.form['diagnostico'].strip()
+            prescricao = request.form['prescricao'].strip()
+            observacoes = request.form['observacoes'].strip()
+            profissional_nome = request.form['profissional_nome'].strip()
             
             # Cria nova entrada no prontuário
             novo_prontuario = Prontuario(
@@ -156,7 +156,84 @@ def gerar_recibo(prontuario_id):
     """
     prontuario = Prontuario.query.get_or_404(prontuario_id)
     paciente = prontuario.paciente_ref
-    
-    return render_template('documentos/recibo.html', 
-                         prontuario=prontuario, 
+
+    return render_template('documentos/recibo.html',
+                         prontuario=prontuario,
                          paciente=paciente)
+
+@prontuario_bp.route('/editar-paciente/<int:paciente_id>', methods=['POST'])
+@medico_required
+def editar_paciente(paciente_id):
+    """
+    Rota para editar informações do paciente
+    Atualiza os dados cadastrais do paciente
+    """
+    paciente = Paciente.query.get_or_404(paciente_id)
+
+    try:
+        # Atualizar dados do paciente
+        paciente.nome = request.form['nome'].strip()
+        paciente.cpf = request.form['cpf'].strip()
+        paciente.telefone = request.form['telefone'].strip()
+        paciente.email = request.form.get('email', '').strip()
+
+        # Data de nascimento
+        data_nascimento_str = request.form.get('data_nascimento', '').strip()
+        if data_nascimento_str:
+            paciente.data_nascimento = datetime.strptime(data_nascimento_str, '%Y-%m-%d').date()
+            # Calcular idade
+            hoje = datetime.now().date()
+            idade = hoje.year - paciente.data_nascimento.year
+            if (hoje.month, hoje.day) < (paciente.data_nascimento.month, paciente.data_nascimento.day):
+                idade -= 1
+            paciente.idade = idade
+
+        paciente.naturalidade = request.form.get('naturalidade', '').strip()
+        paciente.estado_civil = request.form.get('estado_civil', '').strip()
+        paciente.religiao = request.form.get('religiao', '').strip()
+        paciente.profissao = request.form.get('profissao', '').strip()
+        paciente.filiacao_mae = request.form.get('filiacao_mae', '').strip()
+        paciente.filiacao_pai = request.form.get('filiacao_pai', '').strip()
+        paciente.endereco = request.form.get('endereco', '').strip()
+        paciente.bairro = request.form.get('bairro', '').strip()
+        paciente.cidade = request.form.get('cidade', '').strip()
+
+        db.session.commit()
+        flash('Dados do paciente atualizados com sucesso!', 'success')
+
+    except Exception as e:
+        flash(f'Erro ao atualizar paciente: {str(e)}', 'error')
+        db.session.rollback()
+
+    return redirect(url_for('prontuario.lista_pacientes'))
+
+@prontuario_bp.route('/api/prontuarios-anteriores/<int:paciente_id>')
+def api_prontuarios_anteriores(paciente_id):
+    """
+    API para retornar prontuários anteriores do paciente
+    Usado para copiar conteúdo em documentos
+    """
+    try:
+        from flask import jsonify
+
+        prontuarios = Prontuario.query.filter_by(paciente_id=paciente_id)\
+                                      .order_by(Prontuario.data_atendimento.desc())\
+                                      .all()
+
+        resultado = []
+        for p in prontuarios:
+            resultado.append({
+                'id': p.id,
+                'data_atendimento': p.data_atendimento.strftime('%d/%m/%Y'),
+                'especialidade': p.especialidade or '',
+                'queixa_principal': p.queixa_principal or '',
+                'historia_doenca': p.historia_doenca or '',
+                'exame_fisico': p.exame_fisico or '',
+                'diagnostico': p.diagnostico or '',
+                'prescricao': p.prescricao or '',
+                'observacoes': p.observacoes or ''
+            })
+
+        return jsonify({'prontuarios': resultado})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

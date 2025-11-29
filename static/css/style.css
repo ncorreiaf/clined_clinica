@@ -750,16 +750,64 @@ body {
     .no-print {
         display: none !important;
     }
-    
+
     .main-content {
         margin-left: 0 !important;
     }
-    
+
     .page-content {
         padding: 0 !important;
     }
-    
+
     body {
         background: white !important;
+    }
+
+    /* Estilos específicos para relatórios */
+    .card {
+        box-shadow: none !important;
+        page-break-inside: avoid;
+    }
+
+    .card-header {
+        background: #4d7493 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .table {
+        font-size: 11px;
+    }
+
+    .table thead th {
+        background: #4d7493 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .badge {
+        border: 1px solid #333;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+
+    /* Cabeçalho do relatório */
+    @page {
+        margin: 2cm;
+    }
+
+    /* Adiciona informações no cabeçalho */
+    .print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #4d7493;
+        padding-bottom: 10px;
     }
 }

@@ -31,9 +31,9 @@ def salvar_receituario(prontuario_id):
         receituario = Receituario(
             paciente_id=prontuario.paciente_id,
             prontuario_id=prontuario_id,
-            medicamentos=request.form.get('medicamentos'),
-            posologia=request.form.get('posologia'),
-            observacoes=request.form.get('observacoes'),
+            medicamentos=request.form.get('medicamentos', '').strip(),
+            posologia=request.form.get('posologia', '').strip(),
+            observacoes=request.form.get('observacoes', '').strip(),
             validade=datetime.now().date() + timedelta(days=30)
         )
 
@@ -67,10 +67,10 @@ def salvar_laudo(prontuario_id):
         laudo = Laudo(
             paciente_id=prontuario.paciente_id,
             prontuario_id=prontuario_id,
-            tipo_exame=request.form.get('tipo_exame'),
-            titulo=request.form.get('titulo'),
-            conteudo=request.form.get('conteudo'),
-            conclusao=request.form.get('conclusao')
+            tipo_exame=request.form.get('tipo_exame', '').strip(),
+            titulo=request.form.get('titulo', '').strip(),
+            conteudo=request.form.get('conteudo', '').strip(),
+            conclusao=request.form.get('conclusao', '').strip()
         )
 
         db.session.add(laudo)
@@ -112,11 +112,11 @@ def salvar_atestado(prontuario_id):
         atestado = Atestado(
             paciente_id=prontuario.paciente_id,
             prontuario_id=prontuario_id,
-            cid=request.form.get('cid'),
+            cid=request.form.get('cid', '').strip(),
             dias_afastamento=dias,
             data_inicio=data_inicio,
             data_fim=data_fim,
-            observacoes=request.form.get('observacoes')
+            observacoes=request.form.get('observacoes', '').strip()
         )
 
         db.session.add(atestado)
@@ -154,7 +154,7 @@ def salvar_recibo(agendamento_id):
         recibo = Recibo.query.filter_by(agendamento_id=agendamento_id).first()
 
         valor = float(request.form.get('valor', 0))
-        forma_pagamento = request.form.get('forma_pagamento')
+        forma_pagamento = request.form.get('forma_pagamento', '').strip()
 
         if recibo:
             # Atualizar existente
@@ -207,8 +207,8 @@ def salvar_pedido_exame(prontuario_id):
 
         # Pegar exames selecionados
         exames_selecionados = request.form.getlist('exames[]')
-        indicacao_clinica = request.form.get('indicacao_clinica')
-        observacoes = request.form.get('observacoes')
+        indicacao_clinica = request.form.get('indicacao_clinica', '').strip()
+        observacoes = request.form.get('observacoes', '').strip()
 
         # Atualizar campos do prontuário
         if exames_selecionados:

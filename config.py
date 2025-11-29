@@ -33,11 +33,11 @@ class Config:
     # Médico responsável
     MEDICO_NOME = "Dr. Darlan Medeiros"
     MEDICO_CRM = "CRM: 2165 - AL"
-    MEDICO_ESPECIALIDADE = "Psiquiatria"
+    MEDICO_ESPECIALIDADE = "Neuropsiquiatria"
 
     # Horários de funcionamento
     HORARIO_ABERTURA = "08:00"
-    HORARIO_FECHAMENTO = "18:00"
+    HORARIO_FECHAMENTO = "20:00"
 
     # Serviços disponíveis
     SERVICOS_DISPONIVEIS = [

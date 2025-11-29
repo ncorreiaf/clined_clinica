@@ -129,15 +129,17 @@
                                 </td>
                                 <td>
                                     <div class="btn-group-vertical btn-group-sm">
-                                        <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}" 
+                                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalPaciente{{ paciente.id }}">
+                                            <i class="fas fa-eye me-1"></i>Ver Detalhes
+                                        </button>
+                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarPaciente{{ paciente.id }}">
+                                            <i class="fas fa-user-edit me-1"></i>Editar Dados
+                                        </button>
+                                        <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}"
                                            class="btn btn-success btn-sm">
                                             <i class="fas fa-file-medical me-1"></i>Ver Prontuário
                                         </a>
-                                        <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}" 
-                                           class="btn btn-primary btn-sm">
-                                            <i class="fas fa-edit me-1"></i>Editar Prontuário
-                                        </a>
-                                        <a href="{{ url_for('agendamento.agendar') }}?paciente_id={{ paciente.id }}" 
+                                        <a href="{{ url_for('agendamento.agendar') }}?paciente_id={{ paciente.id }}"
                                            class="btn btn-outline-primary btn-sm">
                                             <i class="fas fa-calendar-plus me-1"></i>Agendar
                                         </a>
@@ -150,6 +152,209 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modais de Detalhes dos Pacientes -->
+        {% for paciente in pacientes %}
+        <div class="modal fade" id="modalPaciente{{ paciente.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-user me-2"></i>Dados do Paciente
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <h4 class="text-primary">{{ paciente.nome }}</h4>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-id-card me-2 text-muted"></i>CPF:</strong>
+                                <p class="ms-4">{{ paciente.cpf }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-phone me-2 text-muted"></i>Telefone:</strong>
+                                <p class="ms-4">{{ paciente.telefone or 'Não informado' }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-envelope me-2 text-muted"></i>E-mail:</strong>
+                                <p class="ms-4">{{ paciente.email or 'Não informado' }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-birthday-cake me-2 text-muted"></i>Data de Nascimento:</strong>
+                                <p class="ms-4">
+                                    {% if paciente.data_nascimento %}
+                                        {{ paciente.data_nascimento.strftime('%d/%m/%Y') }}
+                                        {% if paciente.idade %}({{ paciente.idade }} anos){% endif %}
+                                    {% else %}
+                                        Não informado
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-map-marker-alt me-2 text-muted"></i>Naturalidade:</strong>
+                                <p class="ms-4">{{ paciente.naturalidade or 'Não informado' }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-heart me-2 text-muted"></i>Estado Civil:</strong>
+                                <p class="ms-4">{{ paciente.estado_civil or 'Não informado' }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-praying-hands me-2 text-muted"></i>Religião:</strong>
+                                <p class="ms-4">{{ paciente.religiao or 'Não informado' }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-briefcase me-2 text-muted"></i>Profissão:</strong>
+                                <p class="ms-4">{{ paciente.profissao or 'Não informado' }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-female me-2 text-muted"></i>Nome da Mãe:</strong>
+                                <p class="ms-4">{{ paciente.filiacao_mae or 'Não informado' }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-male me-2 text-muted"></i>Nome do Pai:</strong>
+                                <p class="ms-4">{{ paciente.filiacao_pai or 'Não informado' }}</p>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <strong><i class="fas fa-home me-2 text-muted"></i>Endereço Completo:</strong>
+                                <p class="ms-4">
+                                    {% if paciente.endereco %}
+                                        {{ paciente.endereco }}
+                                        {% if paciente.bairro %}<br>Bairro: {{ paciente.bairro }}{% endif %}
+                                        {% if paciente.cidade %}<br>Cidade: {{ paciente.cidade }}{% endif %}
+                                    {% else %}
+                                        Não informado
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fas fa-calendar me-2 text-muted"></i>Cadastro:</strong>
+                                <p class="ms-4">{{ paciente.data_cadastro.strftime('%d/%m/%Y às %H:%M') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Edição do Paciente -->
+        <div class="modal fade" id="modalEditarPaciente{{ paciente.id }}" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="fas fa-user-edit me-2"></i>Editar Dados do Paciente
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('prontuario.editar_paciente', paciente_id=paciente.id) }}">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label for="nome{{ paciente.id }}" class="form-label">Nome Completo *</label>
+                                    <input type="text" class="form-control" id="nome{{ paciente.id }}"
+                                           name="nome" value="{{ paciente.nome }}" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="cpf{{ paciente.id }}" class="form-label">CPF *</label>
+                                    <input type="text" class="form-control" id="cpf{{ paciente.id }}"
+                                           name="cpf" value="{{ paciente.cpf }}" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="telefone{{ paciente.id }}" class="form-label">Telefone *</label>
+                                    <input type="text" class="form-control" id="telefone{{ paciente.id }}"
+                                           name="telefone" value="{{ paciente.telefone or '' }}" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="email{{ paciente.id }}" class="form-label">E-mail</label>
+                                    <input type="email" class="form-control" id="email{{ paciente.id }}"
+                                           name="email" value="{{ paciente.email or '' }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="data_nascimento{{ paciente.id }}" class="form-label">Data de Nascimento</label>
+                                    <input type="date" class="form-control" id="data_nascimento{{ paciente.id }}"
+                                           name="data_nascimento" value="{{ paciente.data_nascimento.strftime('%Y-%m-%d') if paciente.data_nascimento else '' }}">
+                                </div>
+                                <div class="col-md-5 mb-3">
+                                    <label for="naturalidade{{ paciente.id }}" class="form-label">Naturalidade</label>
+                                    <input type="text" class="form-control" id="naturalidade{{ paciente.id }}"
+                                           name="naturalidade" value="{{ paciente.naturalidade or '' }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="estado_civil{{ paciente.id }}" class="form-label">Estado Civil</label>
+                                    <select class="form-select" id="estado_civil{{ paciente.id }}" name="estado_civil">
+                                        <option value="">Selecione</option>
+                                        <option value="Solteiro(a)" {{ 'selected' if paciente.estado_civil == 'Solteiro(a)' else '' }}>Solteiro(a)</option>
+                                        <option value="Casado(a)" {{ 'selected' if paciente.estado_civil == 'Casado(a)' else '' }}>Casado(a)</option>
+                                        <option value="Divorciado(a)" {{ 'selected' if paciente.estado_civil == 'Divorciado(a)' else '' }}>Divorciado(a)</option>
+                                        <option value="Viúvo(a)" {{ 'selected' if paciente.estado_civil == 'Viúvo(a)' else '' }}>Viúvo(a)</option>
+                                        <option value="União Estável" {{ 'selected' if paciente.estado_civil == 'União Estável' else '' }}>União Estável</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="religiao{{ paciente.id }}" class="form-label">Religião</label>
+                                    <input type="text" class="form-control" id="religiao{{ paciente.id }}"
+                                           name="religiao" value="{{ paciente.religiao or '' }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="profissao{{ paciente.id }}" class="form-label">Profissão</label>
+                                    <input type="text" class="form-control" id="profissao{{ paciente.id }}"
+                                           name="profissao" value="{{ paciente.profissao or '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="filiacao_mae{{ paciente.id }}" class="form-label">Nome da Mãe</label>
+                                    <input type="text" class="form-control" id="filiacao_mae{{ paciente.id }}"
+                                           name="filiacao_mae" value="{{ paciente.filiacao_mae or '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="filiacao_pai{{ paciente.id }}" class="form-label">Nome do Pai</label>
+                                    <input type="text" class="form-control" id="filiacao_pai{{ paciente.id }}"
+                                           name="filiacao_pai" value="{{ paciente.filiacao_pai or '' }}">
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label for="endereco{{ paciente.id }}" class="form-label">Endereço</label>
+                                    <input type="text" class="form-control" id="endereco{{ paciente.id }}"
+                                           name="endereco" value="{{ paciente.endereco or '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="bairro{{ paciente.id }}" class="form-label">Bairro</label>
+                                    <input type="text" class="form-control" id="bairro{{ paciente.id }}"
+                                           name="bairro" value="{{ paciente.bairro or '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="cidade{{ paciente.id }}" class="form-label">Cidade</label>
+                                    <input type="text" class="form-control" id="cidade{{ paciente.id }}"
+                                           name="cidade" value="{{ paciente.cidade or '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-1"></i>Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
         {% else %}
         <!-- Mensagem quando não há pacientes -->
         <div class="card">

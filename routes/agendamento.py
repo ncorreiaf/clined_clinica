@@ -16,41 +16,56 @@ agendamento_bp = Blueprint('agendamento', __name__)
 def horarios_disponiveis():
     """
     API para retornar horários disponíveis para uma data específica
-    Horário: 08:00 às 18:00, intervalos de 30 minutos
+    Horário: 08:00 às 20:00, intervalos de 30 minutos
+    Cada serviço tem sua própria grade (múltiplos serviços no mesmo horário são permitidos)
     """
     data_str = request.args.get('data', '')
+    servico = request.args.get('servico', '').strip()
 
     if not data_str:
         return jsonify({'error': 'Data não fornecida'}), 400
+
+    if not servico:
+        return jsonify({'error': 'Serviço não fornecido'}), 400
 
     try:
         data_selecionada = datetime.strptime(data_str, '%Y-%m-%d').date()
     except ValueError:
         return jsonify({'error': 'Data inválida'}), 400
 
-    # Gerar todos os horários possíveis (08:00 às 18:00, intervalos de 30min)
+    # Gerar todos os horários possíveis (08:00 às 20:00, intervalos de 30min)
     horarios_possiveis = []
-    for hora in range(8, 18):
+    for hora in range(8, 20):
         for minuto in [0, 30]:
             horarios_possiveis.append(f"{hora:02d}:{minuto:02d}")
 
-    # Buscar agendamentos existentes para a data
+    # Buscar agendamentos existentes para a data E serviço específico
     agendamentos_dia = Agendamento.query.filter(
-        db.func.date(Agendamento.data_agendamento) == data_selecionada
+        db.func.date(Agendamento.data_agendamento) == data_selecionada,
+        Agendamento.servico == servico
     ).all()
 
-    # Marcar horários ocupados
+    # Marcar horários ocupados (apenas para o serviço específico)
     horarios_ocupados = set()
     for ag in agendamentos_dia:
         horario = ag.data_agendamento.strftime('%H:%M')
         horarios_ocupados.add(horario)
 
+    # Obter data/hora atual
+    agora = datetime.now()
+
     # Criar lista de horários com disponibilidade
     resultado = []
     for horario in horarios_possiveis:
+        hora_minuto = datetime.strptime(f"{data_str} {horario}", '%Y-%m-%d %H:%M')
+
+        # Horário já passou?
+        ja_passou = hora_minuto <= agora
+
         resultado.append({
             'horario': horario,
-            'disponivel': horario not in horarios_ocupados
+            'disponivel': horario not in horarios_ocupados and not ja_passou,
+            'motivo': 'Horário já passou' if ja_passou else ('Ocupado' if horario in horarios_ocupados else '')
         })
 
     return jsonify({'horarios': resultado})
@@ -95,20 +110,49 @@ def agendar():
     """
     if request.method == 'POST':
         try:
-            # Coleta dados do formulário
-            nome_paciente = request.form['nome_paciente']
-            cpf_paciente = request.form['cpf_paciente']
-            telefone = request.form['telefone']
-            email = request.form.get('email', '')
+            # Coleta dados do formulário com TRIM
+            nome_paciente = request.form['nome_paciente'].strip()
+            cpf_paciente = request.form['cpf_paciente'].strip()
+            telefone = request.form['telefone'].strip()
+            email = request.form.get('email', '').strip()
             data_agendamento = datetime.strptime(request.form['data_agendamento'], '%Y-%m-%dT%H:%M')
-            servico = request.form['servico']
-            observacoes = request.form.get('observacoes', '')
+            servico = request.form['servico'].strip()
+            observacoes = request.form.get('observacoes', '').strip()
+
+            # Validação: não permitir agendamento em horário que já passou
+            if data_agendamento <= datetime.now():
+                flash('Não é possível agendar para um horário que já passou!', 'error')
+                return redirect(url_for('agendamento.agendar'))
+
+            # Validação: verificar se já existe agendamento para o mesmo serviço no mesmo horário
+            agendamento_existente = Agendamento.query.filter(
+                Agendamento.data_agendamento == data_agendamento,
+                Agendamento.servico == servico
+            ).first()
+
+            if agendamento_existente:
+                flash(f'Já existe um agendamento de {servico} para este horário!', 'error')
+                return redirect(url_for('agendamento.agendar'))
 
             # Buscar o Dr. Darlan Medeiros (único profissional)
             dr_darlan = Profissional.query.filter_by(ativo=True).first()
             if not dr_darlan:
                 flash('Erro: Profissional não encontrado no sistema!', 'error')
                 return redirect(url_for('agendamento.agendar'))
+
+            # Coletar dados adicionais do paciente
+            data_nascimento_str = request.form.get('data_nascimento', '').strip()
+            data_nascimento = datetime.strptime(data_nascimento_str, '%Y-%m-%d').date() if data_nascimento_str else None
+            idade = int(request.form.get('idade', 0)) if request.form.get('idade') else None
+            naturalidade = request.form.get('naturalidade', '').strip()
+            estado_civil = request.form.get('estado_civil', '').strip()
+            religiao = request.form.get('religiao', '').strip()
+            profissao = request.form.get('profissao', '').strip()
+            filiacao_mae = request.form.get('filiacao_mae', '').strip()
+            filiacao_pai = request.form.get('filiacao_pai', '').strip()
+            endereco = request.form.get('endereco', '').strip()
+            bairro = request.form.get('bairro', '').strip()
+            cidade = request.form.get('cidade', '').strip()
 
             # Verifica se o paciente já existe, se não, cria um novo
             paciente = Paciente.query.filter_by(cpf=cpf_paciente).first()
@@ -117,16 +161,49 @@ def agendar():
                     nome=nome_paciente,
                     cpf=cpf_paciente,
                     telefone=telefone,
-                    email=email
+                    email=email,
+                    data_nascimento=data_nascimento,
+                    idade=idade,
+                    naturalidade=naturalidade,
+                    estado_civil=estado_civil,
+                    religiao=religiao,
+                    profissao=profissao,
+                    filiacao_mae=filiacao_mae,
+                    filiacao_pai=filiacao_pai,
+                    endereco=endereco,
+                    bairro=bairro,
+                    cidade=cidade
                 )
                 db.session.add(paciente)
                 db.session.flush()
             else:
-                # Atualiza dados do paciente se mudou
+                # Atualiza dados do paciente
                 paciente.nome = nome_paciente
                 paciente.telefone = telefone
                 if email:
                     paciente.email = email
+                if data_nascimento:
+                    paciente.data_nascimento = data_nascimento
+                if idade is not None:
+                    paciente.idade = idade
+                if naturalidade:
+                    paciente.naturalidade = naturalidade
+                if estado_civil:
+                    paciente.estado_civil = estado_civil
+                if religiao:
+                    paciente.religiao = religiao
+                if profissao:
+                    paciente.profissao = profissao
+                if filiacao_mae:
+                    paciente.filiacao_mae = filiacao_mae
+                if filiacao_pai:
+                    paciente.filiacao_pai = filiacao_pai
+                if endereco:
+                    paciente.endereco = endereco
+                if bairro:
+                    paciente.bairro = bairro
+                if cidade:
+                    paciente.cidade = cidade
 
             # Cria o novo agendamento
             novo_agendamento = Agendamento(

@@ -40,53 +40,128 @@
                         <!-- Toggle entre Cliente Existente e Novo -->
                         <div class="col-12 mb-3">
                             <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="tipo_cliente" id="clienteExistente" value="existente" checked>
-                                <label class="btn btn-outline-primary" for="clienteExistente">
+                                <button type="button" class="btn btn-outline-primary active" id="btnExistente" onclick="mostrarClienteExistente()">
                                     <i class="fas fa-search me-1"></i>Buscar Cliente Existente
-                                </label>
+                                </button>
 
-                                <input type="radio" class="btn-check" name="tipo_cliente" id="clienteNovo" value="novo">
-                                <label class="btn btn-outline-success" for="clienteNovo">
+                                <button type="button" class="btn btn-outline-success" id="btnNovo" onclick="mostrarNovoCliente()">
                                     <i class="fas fa-user-plus me-1"></i>Cadastrar Novo Cliente
-                                </label>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Busca de Cliente Existente -->
-                        <div id="secaoBusca" class="col-12 mb-3">
-                            <label for="buscaCliente" class="form-label">Buscar por Nome ou CPF</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" id="buscaCliente"
-                                       placeholder="Digite o nome ou CPF do cliente..." autocomplete="off">
+                        <!-- SEÇÃO CLIENTE EXISTENTE -->
+                        <div id="secaoExistente">
+                            <!-- Busca de Cliente Existente -->
+                            <div id="secaoBusca" class="mb-3">
+                                <label for="buscaCliente" class="form-label">Buscar por Nome ou CPF</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="buscaCliente"
+                                           placeholder="Digite o nome ou CPF do cliente..." autocomplete="off">
+                                </div>
+                                <div id="resultadoBusca" class="list-group mt-2" style="display: none;"></div>
+                                <div id="mensagemBusca" class="mt-2" style="display: none;"></div>
+                                <small class="text-muted">Digite pelo menos 3 caracteres para buscar</small>
                             </div>
-                            <div id="resultadoBusca" class="list-group mt-2" style="display: none;"></div>
-                            <small class="text-muted">Digite pelo menos 3 caracteres para buscar</small>
+
+                            <!-- Cliente Selecionado (modo existente) -->
+                            <div id="clienteSelecionado" class="col-12" style="display: none;">
+                                <div class="alert alert-success">
+                                    <h6 class="mb-2"><i class="fas fa-user-check me-2"></i>Cliente Selecionado</h6>
+                                    <p class="mb-0" id="infoClienteSelecionado"></p>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="voltarParaBusca()">
+                                        <i class="fas fa-arrow-left me-1"></i>Alterar Cliente
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Formulário de Dados do Cliente -->
-                        <div id="dadosCliente" class="row">
-                            <div class="col-md-6">
+                        <!-- SEÇÃO NOVO CLIENTE -->
+                        <div id="secaoNovo" class="row" style="display: none;">
+                            <div class="col-md-8 mt-3">
                                 <label for="nome_paciente" class="form-label">Nome Completo *</label>
                                 <input type="text" class="form-control" id="nome_paciente" name="nome_paciente" required>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4 mt-3">
                                 <label for="cpf_paciente" class="form-label">CPF *</label>
                                 <input type="text" class="form-control" id="cpf_paciente" name="cpf_paciente"
-                                       placeholder="000.000.000-00" required>
+                                       placeholder="000.000.000-00">
                             </div>
 
-                            <div class="col-md-6 mt-3">
+                            <div class="col-md-4 mt-3">
                                 <label for="telefone" class="form-label">Telefone *</label>
                                 <input type="tel" class="form-control" id="telefone" name="telefone"
                                        placeholder="(00) 00000-0000" required>
                             </div>
 
-                            <div class="col-md-6 mt-3">
+                            <div class="col-md-4 mt-3">
                                 <label for="email" class="form-label">E-mail</label>
                                 <input type="email" class="form-control" id="email" name="email"
                                        placeholder="email@exemplo.com">
+                            </div>
+
+                            <div class="col-md-4 mt-3">
+                                <label for="data_nascimento" class="form-label">Data de Nascimento</label>
+                                <input type="date" class="form-control" id="data_nascimento" name="data_nascimento">
+                            </div>
+
+                            <div class="col-md-3 mt-3">
+                                <label for="idade" class="form-label">Idade</label>
+                                <input type="number" class="form-control" id="idade" name="idade" readonly>
+                            </div>
+
+                            <div class="col-md-5 mt-3">
+                                <label for="naturalidade" class="form-label">Naturalidade</label>
+                                <input type="text" class="form-control" id="naturalidade" name="naturalidade" placeholder="Cidade/UF">
+                            </div>
+
+                            <div class="col-md-4 mt-3">
+                                <label for="estado_civil" class="form-label">Estado Civil</label>
+                                <select class="form-select" id="estado_civil" name="estado_civil">
+                                    <option value="">Selecione</option>
+                                    <option value="Solteiro(a)">Solteiro(a)</option>
+                                    <option value="Casado(a)">Casado(a)</option>
+                                    <option value="Divorciado(a)">Divorciado(a)</option>
+                                    <option value="Viúvo(a)">Viúvo(a)</option>
+                                    <option value="União Estável">União Estável</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mt-3">
+                                <label for="religiao" class="form-label">Religião</label>
+                                <input type="text" class="form-control" id="religiao" name="religiao">
+                            </div>
+
+                            <div class="col-md-4 mt-3">
+                                <label for="profissao" class="form-label">Profissão</label>
+                                <input type="text" class="form-control" id="profissao" name="profissao">
+                            </div>
+
+                            <div class="col-md-6 mt-3">
+                                <label for="filiacao_mae" class="form-label">Nome da Mãe</label>
+                                <input type="text" class="form-control" id="filiacao_mae" name="filiacao_mae">
+                            </div>
+
+                            <div class="col-md-6 mt-3">
+                                <label for="filiacao_pai" class="form-label">Nome do Pai</label>
+                                <input type="text" class="form-control" id="filiacao_pai" name="filiacao_pai">
+                            </div>
+
+                            <div class="col-md-12 mt-3">
+                                <label for="endereco" class="form-label">Endereço</label>
+                                <input type="text" class="form-control" id="endereco" name="endereco" placeholder="Rua, Número, Complemento">
+                            </div>
+
+                            <div class="col-md-6 mt-3">
+                                <label for="bairro" class="form-label">Bairro</label>
+                                <input type="text" class="form-control" id="bairro" name="bairro">
+                            </div>
+
+                            <div class="col-md-6 mt-3">
+                                <label for="cidade" class="form-label">Cidade</label>
+                                <input type="text" class="form-control" id="cidade" name="cidade">
                             </div>
                         </div>
                     </div>
@@ -109,15 +184,15 @@
 
                         <div class="col-md-6">
                             <label for="data_selecionada" class="form-label">Data *</label>
-                            <input type="date" class="form-control" id="data_selecionada" required>
+                            <input type="date" class="form-control" id="data_selecionada" name="data_selecionada" required>
                         </div>
 
                         <div class="col-md-6">
                             <label for="horario_selecionado" class="form-label">Horário *</label>
                             <select class="form-select" id="horario_selecionado" name="horario_agendamento" required disabled>
-                                <option value="">Selecione primeiro uma data</option>
+                                <option value="">Selecione primeiro uma data e serviço</option>
                             </select>
-                            <small class="text-muted">Horário de atendimento: 08:00 às 18:00</small>
+                            <small class="text-muted">Horário de atendimento: 08:00 às 20:00</small>
                         </div>
 
                         <input type="hidden" id="data_agendamento" name="data_agendamento">
@@ -150,7 +225,7 @@
                                     <i class="fas fa-save me-1"></i>
                                     Confirmar Agendamento
                                 </button>
-                                <button type="reset" class="btn btn-secondary">
+                                <button type="button" class="btn btn-secondary" onclick="limparFormulario()">
                                     <i class="fas fa-eraser me-1"></i>
                                     Limpar Formulário
                                 </button>
@@ -228,215 +303,464 @@
 </div>
 
 <script>
-// JavaScript para validação e formatação do formulário
-document.addEventListener('DOMContentLoaded', function() {
-    const secaoBusca = document.getElementById('secaoBusca');
-    const dadosCliente = document.getElementById('dadosCliente');
+// =============================================
+// VARIÁVEIS GLOBAIS E INICIALIZAÇÃO
+// =============================================
+let timeoutBusca = null;
+
+// =============================================
+// FUNÇÕES PRINCIPAIS DE TOGGLE
+// =============================================
+function mostrarClienteExistente() {
+    console.log('Mostrando cliente existente');
+    
+    // Atualizar botões
+    document.getElementById('btnExistente').classList.add('active');
+    document.getElementById('btnNovo').classList.remove('active');
+    
+    // Mostrar seção existente, ocultar nova
+    document.getElementById('secaoExistente').style.display = 'block';
+    document.getElementById('secaoNovo').style.display = 'none';
+    
+    // Resetar para estado inicial da busca
+    document.getElementById('secaoBusca').style.display = 'block';
+    document.getElementById('clienteSelecionado').style.display = 'none';
+    document.getElementById('resultadoBusca').style.display = 'none';
+    document.getElementById('mensagemBusca').style.display = 'none';
+    document.getElementById('buscaCliente').value = '';
+    
+    // Remover required dos campos do formulário novo
+    removerRequiredCamposCliente();
+    
+    // Limpar seleção anterior
+    limparSelecaoCliente();
+}
+
+function mostrarNovoCliente() {
+    console.log('Mostrando novo cliente');
+    
+    // Atualizar botões
+    document.getElementById('btnExistente').classList.remove('active');
+    document.getElementById('btnNovo').classList.add('active');
+    
+    // Mostrar seção nova, ocultar existente
+    document.getElementById('secaoExistente').style.display = 'none';
+    document.getElementById('secaoNovo').style.display = 'flex';
+    
+    // Adicionar required aos campos
+    adicionarRequiredCamposCliente();
+    
+    // Limpar seleção de cliente existente
+    limparSelecaoCliente();
+}
+
+// =============================================
+// FUNÇÕES DE BUSCA DE CLIENTES
+// =============================================
+function inicializarBuscaClientes() {
     const inputBusca = document.getElementById('buscaCliente');
     const resultadoBusca = document.getElementById('resultadoBusca');
-    let timeoutBusca;
+    const mensagemBusca = document.getElementById('mensagemBusca');
 
-    // Toggle entre buscar existente e novo cliente
-    document.querySelectorAll('input[name="tipo_cliente"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'existente') {
-                secaoBusca.style.display = 'block';
-                dadosCliente.style.display = 'none';
-                // Remover required dos campos
-                document.getElementById('nome_paciente').removeAttribute('required');
-                document.getElementById('cpf_paciente').removeAttribute('required');
-                document.getElementById('telefone').removeAttribute('required');
-            } else {
-                secaoBusca.style.display = 'none';
-                dadosCliente.style.display = 'block';
-                resultadoBusca.style.display = 'none';
-                // Adicionar required aos campos
-                document.getElementById('nome_paciente').setAttribute('required', 'required');
-                document.getElementById('cpf_paciente').setAttribute('required', 'required');
-                document.getElementById('telefone').setAttribute('required', 'required');
-                // Limpar campos
-                limparCamposCliente();
-            }
-        });
-    });
+    if (!inputBusca) return;
 
-    // Busca de clientes
     inputBusca.addEventListener('input', function() {
-        clearTimeout(timeoutBusca);
+        // Limpar timeout anterior
+        if (timeoutBusca) {
+            clearTimeout(timeoutBusca);
+        }
+
         const termo = this.value.trim();
+        const resultadoBusca = document.getElementById('resultadoBusca');
+        const mensagemBusca = document.getElementById('mensagemBusca');
 
+        // Ocultar resultados anteriores
+        resultadoBusca.style.display = 'none';
+        mensagemBusca.style.display = 'none';
+
+        // Verificar se tem pelo menos 3 caracteres
         if (termo.length < 3) {
-            resultadoBusca.style.display = 'none';
-            return;
-        }
-
-        timeoutBusca = setTimeout(async () => {
-            try {
-                const response = await fetch(`/agendamento/buscar-paciente?termo=${encodeURIComponent(termo)}`);
-                const data = await response.json();
-
-                if (data.pacientes.length === 0) {
-                    resultadoBusca.innerHTML = '<div class="list-group-item text-muted">Nenhum cliente encontrado</div>';
-                    resultadoBusca.style.display = 'block';
-                    return;
-                }
-
-                let html = '';
-                data.pacientes.forEach(paciente => {
-                    html += `
-                        <button type="button" class="list-group-item list-group-item-action" onclick="selecionarPaciente(${paciente.id}, '${paciente.nome.replace(/'/g, "\\'")}',' ${paciente.cpf}', '${paciente.telefone}', '${paciente.email}')">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0">${paciente.nome}</h6>
-                                    <small class="text-muted">CPF: ${paciente.cpf} | Tel: ${paciente.telefone}</small>
-                                </div>
-                                <i class="fas fa-check-circle text-success"></i>
-                            </div>
-                        </button>
-                    `;
-                });
-
-                resultadoBusca.innerHTML = html;
-                resultadoBusca.style.display = 'block';
-            } catch (error) {
-                console.error('Erro ao buscar pacientes:', error);
+            if (termo.length > 0) {
+                mostrarMensagemBusca('Digite pelo menos 3 caracteres para buscar', 'warning');
             }
-        }, 300);
-    });
-
-    // Formatação do CPF
-    const cpfInput = document.getElementById('cpf_paciente');
-    cpfInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length <= 11) {
-            value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-            e.target.value = value;
-        }
-    });
-
-    // Formatação do telefone
-    const telefoneInput = document.getElementById('telefone');
-    telefoneInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length <= 11) {
-            value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-            e.target.value = value;
-        }
-    });
-
-    // Configurar data mínima como hoje
-    const dataSelecionada = document.getElementById('data_selecionada');
-    const horarioSelect = document.getElementById('horario_selecionado');
-    const dataAgendamentoHidden = document.getElementById('data_agendamento');
-
-    const hoje = new Date();
-    const dataMinima = hoje.toISOString().split('T')[0];
-    dataSelecionada.min = dataMinima;
-
-    // Carregar horários quando data for selecionada
-    dataSelecionada.addEventListener('change', async function() {
-        const data = this.value;
-
-        if (!data) {
-            horarioSelect.disabled = true;
-            horarioSelect.innerHTML = '<option value="">Selecione primeiro uma data</option>';
             return;
         }
 
         // Mostrar loading
-        horarioSelect.disabled = true;
-        horarioSelect.innerHTML = '<option value="">Carregando horários...</option>';
+        mostrarMensagemBusca('Buscando...', 'info');
 
-        try {
-            const response = await fetch(`/agendamento/horarios-disponiveis?data=${data}`);
-            const dados = await response.json();
+        // Configurar nova busca
+        timeoutBusca = setTimeout(async () => {
+            try {
+                console.log('Buscando pacientes com termo:', termo);
+                const response = await fetch(`/agendamento/buscar-paciente?termo=${encodeURIComponent(termo)}`);
+                
+                if (!response.ok) {
+                    throw new Error('Erro na resposta do servidor');
+                }
+                
+                const data = await response.json();
+                console.log('Resultados encontrados:', data.pacientes ? data.pacientes.length : 0);
 
-            // Limpar e adicionar horários
-            horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                // Ocultar mensagem de loading
+                mensagemBusca.style.display = 'none';
 
-            let horariosDisponiveis = 0;
-            dados.horarios.forEach(h => {
-                const option = document.createElement('option');
-                option.value = h.horario;
-                option.textContent = h.horario;
-
-                if (!h.disponivel) {
-                    option.disabled = true;
-                    option.textContent += ' (Ocupado)';
-                    option.style.color = '#ccc';
-                } else {
-                    horariosDisponiveis++;
+                if (!data.pacientes || data.pacientes.length === 0) {
+                    mostrarMensagemBusca('Nenhum cliente encontrado', 'warning');
+                    return;
                 }
 
-                horarioSelect.appendChild(option);
-            });
+                // Mostrar resultados
+                exibirResultadosBusca(data.pacientes);
 
-            if (horariosDisponiveis === 0) {
-                horarioSelect.innerHTML = '<option value="">Nenhum horário disponível nesta data</option>';
-            } else {
-                horarioSelect.disabled = false;
+            } catch (error) {
+                console.error('Erro ao buscar pacientes:', error);
+                mostrarMensagemBusca('Erro ao buscar clientes. Tente novamente.', 'danger');
             }
+        }, 500); // 500ms de delay
+    });
+}
 
-        } catch (error) {
-            console.error('Erro ao carregar horários:', error);
-            horarioSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
-        }
+function mostrarMensagemBusca(mensagem, tipo) {
+    const mensagemBusca = document.getElementById('mensagemBusca');
+    const cores = {
+        'warning': 'alert-warning',
+        'info': 'alert-info',
+        'danger': 'alert-danger',
+        'success': 'alert-success'
+    };
+    
+    mensagemBusca.innerHTML = `
+        <div class="alert ${cores[tipo] || 'alert-info'} alert-sm py-2 mb-0">
+            <i class="fas fa-info-circle me-1"></i>${mensagem}
+        </div>
+    `;
+    mensagemBusca.style.display = 'block';
+}
+
+function exibirResultadosBusca(pacientes) {
+    const resultadoBusca = document.getElementById('resultadoBusca');
+    
+    let html = '';
+    pacientes.forEach(paciente => {
+        // Escapar caracteres especiais para evitar problemas no HTML
+        const nome = paciente.nome.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+        const cpf = paciente.cpf || '';
+        const telefone = paciente.telefone || '';
+        const email = paciente.email || '';
+        
+        html += `
+            <button type="button" class="list-group-item list-group-item-action" 
+                    onclick="selecionarPaciente(${paciente.id}, '${nome}', '${cpf}', '${telefone}', '${email}')">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">${paciente.nome}</h6>
+                        <small class="text-muted">
+                            ${paciente.cpf ? 'CPF: ' + paciente.cpf + ' | ' : ''}
+                            ${paciente.telefone ? 'Tel: ' + paciente.telefone : ''}
+                        </small>
+                    </div>
+                    <i class="fas fa-check-circle text-success"></i>
+                </div>
+            </button>
+        `;
     });
 
-    // Atualizar campo hidden quando horário for selecionado
-    horarioSelect.addEventListener('change', function() {
-        const data = dataSelecionada.value;
-        const horario = this.value;
+    resultadoBusca.innerHTML = html;
+    resultadoBusca.style.display = 'block';
+}
 
-        if (data && horario) {
-            dataAgendamentoHidden.value = `${data}T${horario}`;
-        }
-    });
-
-    // Iniciar com busca visível
-    dadosCliente.style.display = 'none';
-});
-
-// Função global para selecionar paciente
+// =============================================
+// FUNÇÕES DE SELEÇÃO DE CLIENTE
+// =============================================
 function selecionarPaciente(id, nome, cpf, telefone, email) {
-    // Preencher campos
+    console.log('Selecionando paciente:', nome);
+    
+    // Preencher campos ocultos (para envio do formulário)
     document.getElementById('nome_paciente').value = nome;
     document.getElementById('cpf_paciente').value = cpf;
     document.getElementById('telefone').value = telefone;
     document.getElementById('email').value = email || '';
 
-    // Mostrar campos preenchidos
-    document.getElementById('dadosCliente').style.display = 'block';
+    // Ocultar busca e mostrar cliente selecionado
+    document.getElementById('secaoBusca').style.display = 'none';
     document.getElementById('resultadoBusca').style.display = 'none';
+    document.getElementById('mensagemBusca').style.display = 'none';
     document.getElementById('buscaCliente').value = '';
 
-    // Adicionar required aos campos
-    document.getElementById('nome_paciente').setAttribute('required', 'required');
-    document.getElementById('cpf_paciente').setAttribute('required', 'required');
-    document.getElementById('telefone').setAttribute('required', 'required');
-
-    // Mostrar mensagem de sucesso
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-success alert-dismissible fade show mt-2';
-    alert.innerHTML = `
-        <i class="fas fa-check-circle me-2"></i>Cliente selecionado: <strong>${nome}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    // Mostrar informações do cliente selecionado
+    const infoClienteSelecionado = document.getElementById('infoClienteSelecionado');
+    infoClienteSelecionado.innerHTML = `
+        <strong>${nome}</strong><br>
+        ${cpf ? 'CPF: ' + cpf + '<br>' : ''}
+        ${telefone ? 'Telefone: ' + telefone : ''}
     `;
-    document.getElementById('secaoBusca').appendChild(alert);
+    document.getElementById('clienteSelecionado').style.display = 'block';
 
-    // Remover alert após 3 segundos
-    setTimeout(() => alert.remove(), 3000);
+    // Adicionar required aos campos (para validação do formulário)
+    adicionarRequiredCamposCliente();
+}
+
+function voltarParaBusca() {
+    console.log('Voltando para busca');
+    
+    document.getElementById('secaoBusca').style.display = 'block';
+    document.getElementById('clienteSelecionado').style.display = 'none';
+    document.getElementById('resultadoBusca').style.display = 'none';
+    document.getElementById('mensagemBusca').style.display = 'none';
+    document.getElementById('buscaCliente').value = '';
+    
+    limparSelecaoCliente();
+    removerRequiredCamposCliente();
+}
+
+// =============================================
+// FUNÇÕES DE FORMATAÇÃO
+// =============================================
+function inicializarFormatacaoCampos() {
+    // Formatação do CPF
+    const cpfInput = document.getElementById('cpf_paciente');
+    if (cpfInput) {
+        cpfInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+                e.target.value = value;
+            }
+        });
+    }
+
+    // Formatação do telefone
+    const telefoneInput = document.getElementById('telefone');
+    if (telefoneInput) {
+        telefoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                e.target.value = value;
+            }
+        });
+    }
+
+    // Calcular idade automaticamente
+    const dataNascimento = document.getElementById('data_nascimento');
+    const idadeField = document.getElementById('idade');
+    if (dataNascimento && idadeField) {
+        dataNascimento.addEventListener('change', function() {
+            if (this.value) {
+                const hoje = new Date();
+                const nascimento = new Date(this.value);
+                let idade = hoje.getFullYear() - nascimento.getFullYear();
+                const mes = hoje.getMonth() - nascimento.getMonth();
+
+                if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+                    idade--;
+                }
+
+                idadeField.value = idade >= 0 ? idade : '';
+            } else {
+                idadeField.value = '';
+            }
+        });
+    }
+}
+
+// =============================================
+// FUNÇÕES DE AGENDAMENTO
+// =============================================
+function inicializarAgendamento() {
+    // Configurar data mínima como hoje
+    const dataSelecionada = document.getElementById('data_selecionada');
+    if (dataSelecionada) {
+        const hoje = new Date();
+        const dataMinima = hoje.toISOString().split('T')[0];
+        dataSelecionada.min = dataMinima;
+
+        // Carregar horários quando data ou serviço mudarem
+        dataSelecionada.addEventListener('change', carregarHorarios);
+        document.getElementById('servico').addEventListener('change', carregarHorarios);
+    }
+
+    // Atualizar campo hidden quando horário for selecionado
+    const horarioSelect = document.getElementById('horario_selecionado');
+    if (horarioSelect) {
+        horarioSelect.addEventListener('change', function() {
+            const data = document.getElementById('data_selecionada').value;
+            const horario = this.value;
+
+            if (data && horario) {
+                document.getElementById('data_agendamento').value = `${data}T${horario}`;
+            }
+        });
+    }
+}
+
+async function carregarHorarios() {
+    const data = document.getElementById('data_selecionada').value;
+    const servico = document.getElementById('servico').value;
+    const horarioSelect = document.getElementById('horario_selecionado');
+
+    if (!data || !servico) {
+        horarioSelect.disabled = true;
+        horarioSelect.innerHTML = '<option value="">Selecione primeiro uma data e serviço</option>';
+        return;
+    }
+
+    // Mostrar loading
+    horarioSelect.disabled = true;
+    horarioSelect.innerHTML = '<option value="">Carregando horários...</option>';
+
+    try {
+        const response = await fetch(`/agendamento/horarios-disponiveis?data=${data}&servico=${encodeURIComponent(servico)}`);
+        const dados = await response.json();
+
+        if (dados.error) {
+            horarioSelect.innerHTML = `<option value="">${dados.error}</option>`;
+            return;
+        }
+
+        // Limpar e adicionar horários
+        horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+
+        let horariosDisponiveis = 0;
+        dados.horarios.forEach(h => {
+            const option = document.createElement('option');
+            option.value = h.horario;
+            option.textContent = h.horario;
+
+            if (!h.disponivel) {
+                option.disabled = true;
+                const motivo = h.motivo || 'Ocupado';
+                option.textContent += ` (${motivo})`;
+                option.style.color = '#ccc';
+            } else {
+                horariosDisponiveis++;
+            }
+
+            horarioSelect.appendChild(option);
+        });
+
+        if (horariosDisponiveis === 0) {
+            horarioSelect.innerHTML = '<option value="">Nenhum horário disponível nesta data</option>';
+        } else {
+            horarioSelect.disabled = false;
+        }
+
+    } catch (error) {
+        console.error('Erro ao carregar horários:', error);
+        horarioSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
+    }
+}
+
+// =============================================
+// FUNÇÕES AUXILIARES
+// =============================================
+function adicionarRequiredCamposCliente() {
+    const campos = ['nome_paciente', 'telefone'];
+    campos.forEach(campo => {
+        const elemento = document.getElementById(campo);
+        if (elemento) {
+            elemento.setAttribute('required', 'required');
+        }
+    });
+}
+
+function removerRequiredCamposCliente() {
+    const campos = ['nome_paciente', 'cpf_paciente', 'telefone'];
+    campos.forEach(campo => {
+        const elemento = document.getElementById(campo);
+        if (elemento) {
+            elemento.removeAttribute('required');
+        }
+    });
+}
+
+function limparSelecaoCliente() {
+    const campos = ['nome_paciente', 'cpf_paciente', 'telefone', 'email'];
+    campos.forEach(campo => {
+        const elemento = document.getElementById(campo);
+        if (elemento) {
+            elemento.value = '';
+        }
+    });
 }
 
 function limparCamposCliente() {
-    document.getElementById('nome_paciente').value = '';
-    document.getElementById('cpf_paciente').value = '';
-    document.getElementById('telefone').value = '';
-    document.getElementById('email').value = '';
+    const campos = [
+        'nome_paciente', 'cpf_paciente', 'telefone', 'email', 'data_nascimento', 'idade',
+        'naturalidade', 'estado_civil', 'religiao', 'profissao', 'filiacao_mae',
+        'filiacao_pai', 'endereco', 'bairro', 'cidade'
+    ];
+    
+    campos.forEach(campo => {
+        const elemento = document.getElementById(campo);
+        if (elemento) {
+            elemento.value = '';
+        }
+    });
 }
+
+function limparFormulario() {
+    console.log('Limpando formulário');
+    
+    // Limpar campos do cliente
+    limparCamposCliente();
+    limparSelecaoCliente();
+    
+    // Voltar para modo cliente existente
+    mostrarClienteExistente();
+    
+    // Limpar outros campos do formulário
+    document.getElementById('data_selecionada').value = '';
+    document.getElementById('horario_selecionado').innerHTML = '<option value="">Selecione primeiro uma data e serviço</option>';
+    document.getElementById('horario_selecionado').disabled = true;
+    document.getElementById('servico').value = '';
+    document.getElementById('observacoes').value = '';
+    document.getElementById('data_agendamento').value = '';
+    
+    // Focar no primeiro campo
+    document.getElementById('buscaCliente').focus();
+}
+
+// =============================================
+// INICIALIZAÇÃO DA PÁGINA
+// =============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando página de agendamento');
+    
+    // Inicializar todas as funcionalidades
+    mostrarClienteExistente(); // Começar com cliente existente
+    inicializarBuscaClientes();
+    inicializarFormatacaoCampos();
+    inicializarAgendamento();
+    
+    // Prevenir envio do formulário se não estiver válido
+    document.getElementById('formAgendamento').addEventListener('submit', function(e) {
+        // Validação básica - você pode adicionar mais validações aqui
+        const tipoAtivo = document.getElementById('btnExistente').classList.contains('active') ? 'existente' : 'novo';
+        
+        if (tipoAtivo === 'existente' && !document.getElementById('nome_paciente').value) {
+            e.preventDefault();
+            alert('Por favor, selecione um cliente existente ou cadastre um novo cliente.');
+            return;
+        }
+        
+        console.log('Formulário enviado com sucesso');
+    });
+});
+
+// =============================================
+// TRATAMENTO DE ERROS GLOBAIS
+// =============================================
+window.addEventListener('error', function(e) {
+    console.error('Erro global:', e.error);
+});
+
+console.log('Script de agendamento carregado');
 </script>
 
 <style>
+/* Estilos para a busca */
 #resultadoBusca {
     position: absolute;
     z-index: 1000;
@@ -445,18 +769,70 @@ function limparCamposCliente() {
     overflow-y: auto;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
 }
 
 #resultadoBusca .list-group-item {
     cursor: pointer;
+    border: none;
+    border-bottom: 1px solid #f8f9fa;
 }
 
 #resultadoBusca .list-group-item:hover {
     background-color: #f8f9fa;
 }
 
+#resultadoBusca .list-group-item:last-child {
+    border-bottom: none;
+}
+
 #secaoBusca {
     position: relative;
+}
+
+/* Estilos para os botões de toggle */
+.btn-group .btn.active {
+    border-width: 2px;
+    font-weight: bold;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Estilos para mensagens */
+.alert-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+/* Melhorias de layout */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.card {
+    border: none;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .btn-group .btn {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    #secaoNovo {
+        display: block !important;
+    }
+    
+    #secaoNovo .row > [class*="col-"] {
+        margin-bottom: 1rem;
+    }
 }
 </style>
 {% endblock %}

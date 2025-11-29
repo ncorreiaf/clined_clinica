@@ -69,8 +69,21 @@
                             <label for="data_vencimento" class="form-label">Data de Vencimento *</label>
                             <input type="date" class="form-control" id="data_vencimento" name="data_vencimento" required>
                         </div>
+                        <div class="col-md-6">
+                            <label for="forma_pagamento" class="form-label">Forma de Pagamento *</label>
+                            <select class="form-select" id="forma_pagamento" name="forma_pagamento" required>
+                                <option value="">Selecione a forma</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="PIX">PIX</option>
+                                <option value="Débito">Cartão de Débito</option>
+                                <option value="Crédito">Cartão de Crédito</option>
+                                <option value="Transferência">Transferência</option>
+                                <option value="Cortesia">Cortesia (Gratuito)</option>
+                            </select>
+                        </div>
                     </div>
-                    
+
+
                     <div class="mb-3">
                         <label for="observacoes" class="form-label">Observações</label>
                         <textarea class="form-control" id="observacoes" name="observacoes" rows="3"
@@ -100,15 +113,21 @@
             </div>
             <div class="card-body">
                 <p class="small text-muted">
-                    Use este formulário para criar novas contas a receber. 
-                    Você pode vincular a conta a um agendamento específico ou criar uma conta avulsa.
+                    Use este formulário para criar e registrar pagamentos de consultas.
                 </p>
                 <hr>
-                <h6 class="text-primary">Dicas:</h6>
+                <h6 class="text-primary">Formas de Pagamento:</h6>
+                <ul class="small">
+                    <li><strong>Dinheiro, PIX, Débito, Crédito, Transferência:</strong> Conta criada como pendente. Clique em "Pagar" na lista quando receber.</li>
+                    <li><strong>Cortesia (Gratuito):</strong> Atendimento gratuito, já registrado como concluído automaticamente.</li>
+                </ul>
+                <hr>
+                <h6 class="text-success">Dicas:</h6>
                 <ul class="small">
                     <li>Vincule ao agendamento quando possível</li>
-                    <li>Use descrições claras e objetivas</li>
-                    <li>Defina prazos de vencimento realistas</li>
+                    <li>Use descrições claras (Ex: Consulta Fisioterapia)</li>
+                    <li>Informe a forma de pagamento já na criação</li>
+                    <li>Para marcar como pago, vá na lista e clique em "Pagar"</li>
                 </ul>
             </div>
         </div>
@@ -117,10 +136,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Definir data de vencimento padrão (hoje + 30 dias)
+    // Definir data de vencimento padrão (hoje)
     const hoje = new Date();
-    const vencimento = new Date(hoje.getTime() + (30 * 24 * 60 * 60 * 1000));
-    document.getElementById('data_vencimento').value = vencimento.toISOString().split('T')[0];
+    document.getElementById('data_vencimento').value = hoje.toISOString().split('T')[0];
 });
 </script>
 {% endblock %}
