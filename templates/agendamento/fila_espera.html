@@ -252,10 +252,11 @@
                                    class="btn btn-info btn-sm">
                                     <i class="fas fa-file-medical me-1"></i>Prontuário
                                 </a>
-                                <button class="btn btn-warning btn-sm"
-                                        onclick="copiarLinkAvaliacao({{ agendamento.id }})">
+                                <a href="https://clined-system.onrender.com/relatorios/avaliacao-publica/{{ agendamento.id }}"
+                                   target="_blank"
+                                   class="btn btn-warning btn-sm">
                                     <i class="fas fa-star me-1"></i>Link NPS
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -273,29 +274,6 @@
 </div>
 
 <script>
-function copiarLinkAvaliacao(agendamentoId) {
-    const link = window.location.origin + '/relatorios/avaliacao-publica/' + agendamentoId;
-
-    // Copiar para clipboard
-    navigator.clipboard.writeText(link).then(function() {
-        // Mostrar feedback visual
-        const btn = event.target.closest('button');
-        const textoOriginal = btn.innerHTML;
-
-        btn.innerHTML = '<i class="fas fa-check me-1"></i>Copiado!';
-        btn.classList.remove('btn-warning');
-        btn.classList.add('btn-success');
-
-        setTimeout(function() {
-            btn.innerHTML = textoOriginal;
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-warning');
-        }, 2000);
-    }).catch(function(err) {
-        alert('Erro ao copiar link: ' + err);
-    });
-}
-
 // Auto-refresh da página a cada 30 segundos
 setInterval(function() {
     // Só atualiza se não há modais abertos ou formulários sendo preenchidos
