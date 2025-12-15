@@ -51,7 +51,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form method="POST" id="formProntuario">
+                <form method="POST" id="formProntuario" autocomplete="off">
                     <div class="row mb-4">
                         <!-- Informações básicas do atendimento -->
                         <div class="col-12">
@@ -60,11 +60,11 @@
                                 Informações do Atendimento
                             </h6>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label for="especialidade" class="form-label">Tipo de Atendimento *</label>
-                            <select class="form-select" id="especialidade" name="especialidade" required>
-                                <option value="">Selecione o tipo</option>
+                            <select class="form-select" id="especialidade" name="especialidade" required autocomplete="off">
+                                <option value="" selected>Selecione o tipo</option>
                                 {% for servico in config.SERVICOS_DISPONIVEIS %}
                                 <option value="{{ servico }}">{{ servico }}</option>
                                 {% endfor %}
@@ -90,28 +90,28 @@
                         
                         <div class="col-md-6">
                             <label for="queixa_principal" class="form-label">Queixa Principal</label>
-                            <textarea class="form-control" id="queixa_principal" name="queixa_principal" 
-                                      rows="4" placeholder="Descreva a queixa principal do paciente..."></textarea>
+                            <textarea class="form-control" id="queixa_principal" name="queixa_principal"
+                                      rows="4" placeholder="Descreva a queixa principal do paciente..." autocomplete="off"></textarea>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label for="historia_doenca" class="form-label">História da Doença Atual</label>
-                            <textarea class="form-control" id="historia_doenca" name="historia_doenca" 
-                                      rows="4" placeholder="História detalhada da doença atual..."></textarea>
+                            <textarea class="form-control" id="historia_doenca" name="historia_doenca"
+                                      rows="4" placeholder="História detalhada da doença atual..." autocomplete="off"></textarea>
                         </div>
                     </div>
 
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="exame_fisico" class="form-label">Exame Físico</label>
-                            <textarea class="form-control" id="exame_fisico" name="exame_fisico" 
-                                      rows="4" placeholder="Achados do exame físico..."></textarea>
+                            <textarea class="form-control" id="exame_fisico" name="exame_fisico"
+                                      rows="4" placeholder="Achados do exame físico..." autocomplete="off"></textarea>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label for="diagnostico" class="form-label">Diagnóstico/Avaliação</label>
-                            <textarea class="form-control" id="diagnostico" name="diagnostico" 
-                                      rows="4" placeholder="Diagnóstico clínico ou avaliação..."></textarea>
+                            <textarea class="form-control" id="diagnostico" name="diagnostico"
+                                      rows="4" placeholder="Diagnóstico clínico ou avaliação..." autocomplete="off"></textarea>
                         </div>
                     </div>
 
@@ -123,17 +123,17 @@
                                 Conduta e Orientações
                             </h6>
                         </div>
-                        
+
                         <div class="col-12 mb-3">
                             <label for="prescricao" class="form-label">Prescrição/Conduta</label>
-                            <textarea class="form-control" id="prescricao" name="prescricao" 
-                                      rows="5" placeholder="Medicamentos, exercícios, orientações terapêuticas..."></textarea>
+                            <textarea class="form-control" id="prescricao" name="prescricao"
+                                      rows="5" placeholder="Medicamentos, exercícios, orientações terapêuticas..." autocomplete="off"></textarea>
                         </div>
-                        
+
                         <div class="col-12">
                             <label for="observacoes" class="form-label">Observações Adicionais</label>
-                            <textarea class="form-control" id="observacoes" name="observacoes" 
-                                      rows="3" placeholder="Observações gerais, próximas etapas, etc..."></textarea>
+                            <textarea class="form-control" id="observacoes" name="observacoes"
+                                      rows="3" placeholder="Observações gerais, próximas etapas, etc..." autocomplete="off"></textarea>
                         </div>
                     </div>
 
@@ -242,7 +242,61 @@
 </div>
 
 <script>
+// =============================================
+// FUNÇÃO PARA FORÇAR LIMPEZA COMPLETA DO FORMULÁRIO
+// =============================================
+function limparFormularioCompleto() {
+    console.log('Limpando todos os campos do formulário de prontuário');
+
+    // Limpar TODOS os textareas
+    document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.value = '';
+        textarea.textContent = '';
+        textarea.removeAttribute('value');
+    });
+
+    // Resetar o select para a primeira opção (vazia)
+    const especialidadeSelect = document.getElementById('especialidade');
+    if (especialidadeSelect) {
+        especialidadeSelect.selectedIndex = 0;
+        especialidadeSelect.value = '';
+    }
+
+    // Limpar campos específicos (para garantir)
+    const camposParaLimpar = [
+        'queixa_principal',
+        'historia_doenca',
+        'exame_fisico',
+        'diagnostico',
+        'prescricao',
+        'observacoes'
+    ];
+
+    camposParaLimpar.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) {
+            campo.value = '';
+            campo.textContent = '';
+        }
+    });
+
+    console.log('Formulário completamente limpo');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // PRIMEIRO: Forçar limpeza completa IMEDIATA
+    limparFormularioCompleto();
+
+    // SEGUNDO: Limpar novamente após um pequeno delay
+    setTimeout(function() {
+        limparFormularioCompleto();
+    }, 100);
+
+    // TERCEIRO: Limpar novamente após tudo carregar
+    setTimeout(function() {
+        limparFormularioCompleto();
+    }, 300);
+
     // Auto-resize das textareas conforme o conteúdo
     const textareas = document.querySelectorAll('textarea');
     textareas.forEach(textarea => {
@@ -251,25 +305,49 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.height = (this.scrollHeight) + 'px';
         });
     });
-    
+
     // Confirmação antes de sair da página sem salvar
     const form = document.getElementById('formProntuario');
     let formModified = false;
-    
+
     form.addEventListener('input', function() {
         formModified = true;
     });
-    
+
     window.addEventListener('beforeunload', function(e) {
         if (formModified) {
             e.preventDefault();
             e.returnValue = '';
         }
     });
-    
+
     form.addEventListener('submit', function() {
         formModified = false;
     });
+});
+
+// Limpar quando a página for totalmente carregada
+window.addEventListener('load', function() {
+    console.log('Página totalmente carregada - forçando limpeza final');
+    setTimeout(function() {
+        limparFormularioCompleto();
+    }, 50);
+});
+
+// Prevenir restauração de valores pelo navegador (ao voltar na página)
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        console.log('Página restaurada do cache - limpando formulário');
+        limparFormularioCompleto();
+    }
+});
+
+// Limpar formulário ao sair da página (previne cache)
+window.addEventListener('beforeunload', function() {
+    const form = document.getElementById('formProntuario');
+    if (form) {
+        form.reset();
+    }
 });
 </script>
 {% endblock %}
