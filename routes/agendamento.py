@@ -112,12 +112,20 @@ def agendar():
         try:
             # Coleta dados do formulário com TRIM
             nome_paciente = request.form['nome_paciente'].strip()
-            cpf_paciente = request.form['cpf_paciente'].strip()
+            cpf_paciente = request.form.get('cpf_paciente', '').strip()
             telefone = request.form['telefone'].strip()
             email = request.form.get('email', '').strip()
             data_agendamento = datetime.strptime(request.form['data_agendamento'], '%Y-%m-%dT%H:%M')
             servico = request.form['servico'].strip()
             observacoes = request.form.get('observacoes', '').strip()
+
+            print("\n" + "="*60)
+            print("📋 NOVO CADASTRO/AGENDAMENTO")
+            print("="*60)
+            print(f"Nome: {nome_paciente}")
+            print(f"CPF: {cpf_paciente if cpf_paciente else '(não informado)'}")
+            print(f"Telefone: {telefone}")
+            print(f"Email: {email if email else '(não informado)'}")
 
             # Validação: não permitir agendamento em horário que já passou
             if data_agendamento <= datetime.now():
@@ -154,12 +162,39 @@ def agendar():
             bairro = request.form.get('bairro', '').strip()
             cidade = request.form.get('cidade', '').strip()
 
-            # Verifica se o paciente já existe, se não, cria um novo
-            paciente = Paciente.query.filter_by(cpf=cpf_paciente).first()
+            # Mostrar todos os pacientes existentes no banco PARA DEBUG
+            total_pacientes = Paciente.query.count()
+            print(f"\n📊 Total de pacientes no banco ANTES: {total_pacientes}")
+            if total_pacientes > 0 and total_pacientes <= 10:
+                print("\n👥 Lista de pacientes existentes:")
+                todos = Paciente.query.all()
+                for p in todos:
+                    print(f"   ID={p.id}, Nome={p.nome}, CPF={p.cpf or '(sem CPF)'}, Tel={p.telefone}")
+
+            # Verifica se o paciente já existe
+            # IMPORTANTE: Busca inteligente para evitar duplicatas
+            paciente = None
+
+            if cpf_paciente and cpf_paciente.strip():
+                # Se CPF foi fornecido, busca por CPF
+                paciente = Paciente.query.filter_by(cpf=cpf_paciente).first()
+                print(f"\n🔍 Buscando por CPF: {cpf_paciente}")
+                print(f"   Resultado: {'ENCONTRADO ID=' + str(paciente.id) if paciente else 'NÃO ENCONTRADO - CRIANDO NOVO'}")
+            else:
+                # Se CPF NÃO foi fornecido, busca por Nome + Telefone
+                paciente = Paciente.query.filter_by(
+                    nome=nome_paciente,
+                    telefone=telefone
+                ).first()
+                print(f"\n🔍 Buscando por Nome+Telefone: {nome_paciente} / {telefone}")
+                print(f"   Resultado: {'ENCONTRADO ID=' + str(paciente.id) if paciente else 'NÃO ENCONTRADO - CRIANDO NOVO'}")
+
             if not paciente:
+                # CRIAR NOVO PACIENTE
+                print(f"\n➕ CRIANDO NOVO PACIENTE")
                 paciente = Paciente(
                     nome=nome_paciente,
-                    cpf=cpf_paciente,
+                    cpf=cpf_paciente if cpf_paciente and cpf_paciente.strip() else None,
                     telefone=telefone,
                     email=email,
                     data_nascimento=data_nascimento,
@@ -176,8 +211,11 @@ def agendar():
                 )
                 db.session.add(paciente)
                 db.session.flush()
+                print(f"✅ NOVO PACIENTE CRIADO: ID={paciente.id}, Nome={paciente.nome}, CPF={paciente.cpf or '(sem CPF)'}")
             else:
-                # Atualiza dados do paciente
+                # ATUALIZAR PACIENTE EXISTENTE
+                print(f"\n✏️  ATUALIZANDO PACIENTE EXISTENTE: ID={paciente.id}")
+                print(f"   Nome antigo: {paciente.nome} → Novo: {nome_paciente}")
                 paciente.nome = nome_paciente
                 paciente.telefone = telefone
                 if email:
@@ -216,6 +254,16 @@ def agendar():
 
             db.session.add(novo_agendamento)
             db.session.commit()
+
+            # Mostrar estado final do banco
+            total_pacientes_depois = Paciente.query.count()
+            print(f"\n📊 Total de pacientes no banco DEPOIS: {total_pacientes_depois}")
+            if total_pacientes_depois <= 10:
+                print("\n👥 Lista FINAL de pacientes:")
+                todos = Paciente.query.all()
+                for p in todos:
+                    print(f"   ID={p.id}, Nome={p.nome}, CPF={p.cpf or '(sem CPF)'}, Tel={p.telefone}")
+            print("="*60 + "\n")
 
             flash('Agendamento realizado com sucesso!', 'success')
             return redirect(url_for('agendamento.lista_agendamentos'))
