@@ -6,6 +6,7 @@ Gerencia upload, listagem e download de arquivos
 from flask import Blueprint, request, redirect, url_for, flash, send_file, jsonify
 from werkzeug.utils import secure_filename
 from models.models import db, Paciente, AnexoProntuario
+from utils.auth_helpers import agendamento_required
 import os
 from datetime import datetime
 
@@ -28,6 +29,7 @@ def get_file_size_str(size_bytes):
     return f"{size_bytes:.1f} TB"
 
 @anexos_bp.route('/paciente/<int:paciente_id>/listar')
+@agendamento_required
 def listar_anexos(paciente_id):
     """Lista todos os anexos de um paciente"""
     anexos = AnexoProntuario.query.filter_by(paciente_id=paciente_id).order_by(AnexoProntuario.data_upload.desc()).all()
@@ -47,6 +49,7 @@ def listar_anexos(paciente_id):
     return jsonify({'anexos': anexos_data})
 
 @anexos_bp.route('/paciente/<int:paciente_id>/upload', methods=['POST'])
+@agendamento_required
 def upload_anexo(paciente_id):
     """Faz upload de um arquivo anexo"""
     try:
@@ -116,6 +119,7 @@ def upload_anexo(paciente_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @anexos_bp.route('/download/<int:anexo_id>')
+@agendamento_required
 def download_anexo(anexo_id):
     """Baixa um arquivo anexo"""
     try:
@@ -137,6 +141,7 @@ def download_anexo(anexo_id):
         return redirect(request.referrer or url_for('prontuario.lista_pacientes'))
 
 @anexos_bp.route('/deletar/<int:anexo_id>', methods=['POST'])
+@agendamento_required
 def deletar_anexo(anexo_id):
     """Deleta um arquivo anexo"""
     try:
