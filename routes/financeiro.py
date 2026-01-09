@@ -8,7 +8,7 @@ from models.models import db, ContaReceber, ContaPagar, FluxoCaixa, Paciente, Pr
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, and_, or_
 from decimal import Decimal
-from utils.auth_helpers import get_usuario_atual
+from utils.auth_helpers import get_usuario_atual, financeiro_required
 
 # Criação do Blueprint para financeiro
 financeiro_bp = Blueprint('financeiro', __name__)
@@ -19,6 +19,7 @@ def utility_processor():
     return dict(date=date, datetime=datetime)
 
 @financeiro_bp.route('/dashboard')
+@financeiro_required
 def dashboard():
     """
     Dashboard financeiro com resumo geral
@@ -77,6 +78,7 @@ def dashboard():
                              entradas_mes=0, saidas_mes=0, saldo_mes=0)
 
 @financeiro_bp.route('/contas-receber')
+@financeiro_required
 def contas_receber():
     """
     Lista de contas a receber
@@ -95,6 +97,7 @@ def contas_receber():
                          status_filtro=status_filtro)
 
 @financeiro_bp.route('/contas-receber/nova', methods=['GET', 'POST'])
+@financeiro_required
 def nova_conta_receber():
     """
     Criar nova conta a receber
@@ -159,6 +162,7 @@ def nova_conta_receber():
                          agendamentos=agendamentos)
 
 @financeiro_bp.route('/contas-pagar')
+@financeiro_required
 def contas_pagar():
     """
     Lista de contas a pagar
@@ -177,6 +181,7 @@ def contas_pagar():
                          status_filtro=status_filtro)
 
 @financeiro_bp.route('/contas-pagar/nova', methods=['GET', 'POST'])
+@financeiro_required
 def nova_conta_pagar():
     """
     Criar nova conta a pagar
@@ -216,6 +221,7 @@ def nova_conta_pagar():
     return render_template('financeiro/nova_conta_pagar.html')
 
 @financeiro_bp.route('/fluxo-caixa')
+@financeiro_required
 def fluxo_caixa():
     """
     Relatório de fluxo de caixa
@@ -255,6 +261,7 @@ def fluxo_caixa():
 
 
 @financeiro_bp.route('/pagar-conta/<int:conta_id>', methods=['POST'])
+@financeiro_required
 def pagar_conta(conta_id):
     """
     Marcar conta como paga
@@ -289,6 +296,7 @@ def pagar_conta(conta_id):
     return redirect(url_for('financeiro.contas_pagar'))
 
 @financeiro_bp.route('/receber-conta/<int:conta_id>', methods=['POST'])
+@financeiro_required
 def receber_conta(conta_id):
     """
     Marcar conta como recebida
@@ -330,6 +338,7 @@ def receber_conta(conta_id):
 
 # Novas rotas para API/JSON
 @financeiro_bp.route('/api/contas-receber')
+@financeiro_required
 def api_contas_receber():
     """
     API para obter contas a receber em formato JSON
@@ -351,6 +360,7 @@ def api_contas_receber():
     return jsonify(contas_data)
 
 @financeiro_bp.route('/api/contas-pagar')
+@financeiro_required
 def api_contas_pagar():
     """
     API para obter contas a pagar em formato JSON
@@ -372,6 +382,7 @@ def api_contas_pagar():
     return jsonify(contas_data)
 
 @financeiro_bp.route('/api/fluxo-caixa/<string:periodo>')
+@financeiro_required
 def api_fluxo_caixa(periodo):
     """
     API para obter fluxo de caixa por período
