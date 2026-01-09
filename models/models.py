@@ -365,7 +365,7 @@ class Usuario(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
     nome = db.Column(db.String(100), nullable=False)
-    perfil = db.Column(db.String(20), nullable=False)  # admin, medico, tv
+    perfil = db.Column(db.String(20), nullable=False)  # admin, medico, recepcionista, tv
     ativo = db.Column(db.Boolean, default=True)
     profissional_id = db.Column(db.Integer, db.ForeignKey('profissionais.id'))
     ultimo_acesso = db.Column(db.DateTime)
