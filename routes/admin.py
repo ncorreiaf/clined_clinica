@@ -37,7 +37,7 @@ def novo_usuario():
             flash('Preencha todos os campos obrigatórios.', 'error')
             return render_template('admin/novo_usuario.html', usuario=usuario)
 
-        if perfil not in ['admin', 'medico', 'tv']:
+        if perfil not in ['admin', 'medico', 'recepcionista', 'tv']:
             flash('Perfil inválido.', 'error')
             return render_template('admin/novo_usuario.html', usuario=usuario)
 
