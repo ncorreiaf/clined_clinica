@@ -43,8 +43,10 @@
                                                 <span class="badge bg-danger">Admin</span>
                                             {% elif u.perfil == 'medico' %}
                                                 <span class="badge bg-success">Médico</span>
+                                            {% elif u.perfil == 'recepcionista' %}
+                                                <span class="badge bg-info">Recepcionista</span>
                                             {% elif u.perfil == 'tv' %}
-                                                <span class="badge bg-info">TV</span>
+                                                <span class="badge bg-secondary">TV</span>
                                             {% endif %}
                                         </td>
                                         <td>
