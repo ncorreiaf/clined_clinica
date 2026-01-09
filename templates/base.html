@@ -109,7 +109,7 @@
                 </div>
                 
                 <!-- Financeiro -->
-                {% if usuario_atual and usuario_atual.perfil == 'admin' %}
+                {% if usuario_atual and usuario_atual.perfil in ['admin', 'recepcionista'] %}
                 <div class="nav-section">
                     <div class="nav-section-title">Financeiro</div>
                     <div class="nav-item nav-dropdown">
