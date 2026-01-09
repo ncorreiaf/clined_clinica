@@ -74,6 +74,8 @@ def login():
                 return redirect(url_for('index'))
             elif usuario.perfil == 'medico':
                 return redirect(url_for('medico.dashboard'))
+            elif usuario.perfil == 'recepcionista':
+                return redirect(url_for('agendamento.lista_agendamentos'))
             else:
                 return redirect(url_for('index'))
 
@@ -86,6 +88,8 @@ def login():
     if usuario_logado:
         if usuario_logado.perfil == 'medico':
             return redirect(url_for('medico.dashboard'))
+        elif usuario_logado.perfil == 'recepcionista':
+            return redirect(url_for('agendamento.lista_agendamentos'))
         return redirect(url_for('index'))
 
     return render_template('auth/login.html')
