@@ -6,13 +6,13 @@ Gerencia todas as funcionalidades relacionadas aos prontuários
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models.models import db, Prontuario, Paciente, AtendimentoHistorico
 from datetime import datetime
-from utils.auth_helpers import medico_required
+from utils.auth_helpers import medico_required, agendamento_required, get_usuario_atual
 
 # Criação do Blueprint para prontuários
 prontuario_bp = Blueprint('prontuario', __name__)
 
 @prontuario_bp.route('/pacientes')
-@medico_required
+@agendamento_required
 def lista_pacientes():
     """
     Rota para exibir lista de pacientes
@@ -35,21 +35,24 @@ def lista_pacientes():
                          busca=busca)
 
 @prontuario_bp.route('/ver/<int:paciente_id>')
-@medico_required
+@agendamento_required
 def ver_prontuario(paciente_id):
     """
     Rota para visualizar prontuário completo do paciente
     Mostra histórico de atendimentos e informações gerais
+    Recepcionistas podem visualizar, mas não editar
     """
     paciente = Paciente.query.get_or_404(paciente_id)
-    
+    usuario = get_usuario_atual()
+
     # Busca todos os prontuários do paciente
     prontuarios = Prontuario.query.filter_by(paciente_id=paciente_id)\
                                   .order_by(Prontuario.data_atendimento.desc()).all()
-    
-    return render_template('prontuario/ver_prontuario.html', 
-                         paciente=paciente, 
-                         prontuarios=prontuarios)
+
+    return render_template('prontuario/ver_prontuario.html',
+                         paciente=paciente,
+                         prontuarios=prontuarios,
+                         usuario=usuario)
 
 @prontuario_bp.route('/editar/<int:paciente_id>', methods=['GET', 'POST'])
 @medico_required
@@ -162,7 +165,7 @@ def gerar_recibo(prontuario_id):
                          paciente=paciente)
 
 @prontuario_bp.route('/editar-paciente/<int:paciente_id>', methods=['POST'])
-@medico_required
+@agendamento_required
 def editar_paciente(paciente_id):
     """
     Rota para editar informações do paciente
