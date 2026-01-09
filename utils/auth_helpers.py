@@ -135,6 +135,21 @@ def medico_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def agendamento_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        usuario = get_usuario_atual()
+        if not usuario:
+            flash('Você precisa fazer login para acessar esta página.', 'error')
+            return redirect(url_for('auth.login'))
+
+        if usuario.perfil not in ['recepcionista', 'atendente', 'medico', 'admin']:
+            flash('Você não tem permissão para acessar esta página.', 'error')
+            return redirect(url_for('index'))
+
+        return f(*args, **kwargs)
+    return decorated_function
+
 def validar_token_tv(token: str):
     try:
         usuario = Usuario.query.filter_by(
