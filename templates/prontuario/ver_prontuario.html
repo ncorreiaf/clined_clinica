@@ -18,9 +18,11 @@
                 <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalAnexos">
                     <i class="fas fa-paperclip me-1"></i>Anexos
                 </button>
+                {% if usuario_atual.perfil in ['medico', 'admin'] %}
                 <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}" class="btn btn-primary">
                     <i class="fas fa-edit me-1"></i>Nova Entrada
                 </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -181,6 +183,7 @@
                                 </div>
                                 
                                 <!-- Botões para gerar documentos -->
+                                {% if usuario_atual.perfil in ['medico', 'admin'] %}
                                 <div class="border-top pt-3">
                                     <h6 class="text-muted mb-2">Documentos Médicos</h6>
                                     <div class="d-flex flex-wrap gap-2">
@@ -208,6 +211,7 @@
                                         </small>
                                     </div>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -224,9 +228,11 @@
                 <p class="text-muted mb-4">
                     Este paciente ainda não possui entradas no prontuário eletrônico.
                 </p>
+                {% if usuario_atual.perfil in ['medico', 'admin'] %}
                 <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}" class="btn btn-success">
                     <i class="fas fa-plus me-1"></i>Criar Primeira Entrada
                 </a>
+                {% endif %}
             </div>
         </div>
         {% endif %}
