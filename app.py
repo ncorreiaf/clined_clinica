@@ -145,6 +145,17 @@ def criar_usuarios_iniciais():
         db.session.add(medico)
         print("✅ Usuário médico criado - Email: darlan@clined.com.br | Senha: medico123")
 
+        # Criar usuário recepcionista
+        recepcionista = Usuario(
+            nome='Recepcionista',
+            email='recepcao@clined.com.br',
+            senha_hash=hash_senha('recepcao123'),
+            perfil='recepcionista',
+            ativo=True
+        )
+        db.session.add(recepcionista)
+        print("✅ Usuário recepcionista criado - Email: recepcao@clined.com.br | Senha: recepcao123")
+
         # Criar usuário TV
         token_tv = gerar_token_tv()
         tv = Usuario(
