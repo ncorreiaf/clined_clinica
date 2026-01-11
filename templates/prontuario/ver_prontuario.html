@@ -371,12 +371,22 @@ async function carregarAnexos() {
 
         let html = '<div class="list-group">';
         data.anexos.forEach(anexo => {
+            // Determinar ícone baseado no tipo de arquivo
+            let icon = 'fa-file';
+            let ext = anexo.nome_original.split('.').pop().toLowerCase();
+            
+            if (['pdf'].includes(ext)) icon = 'fa-file-pdf';
+            else if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) icon = 'fa-file-image';
+            else if (['doc', 'docx'].includes(ext)) icon = 'fa-file-word';
+            else if (['txt'].includes(ext)) icon = 'fa-file-alt';
+            else if (['zip'].includes(ext)) icon = 'fa-file-archive';
+            
             html += `
                 <div class="list-group-item">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
                             <h6 class="mb-1">
-                                <i class="fas fa-file me-2"></i>${anexo.nome_original}
+                                <i class="fas ${icon} me-2"></i>${anexo.nome_original}
                             </h6>
                             ${anexo.descricao ? `<p class="mb-1 text-muted small">${anexo.descricao}</p>` : ''}
                             <small class="text-muted">
@@ -386,12 +396,20 @@ async function carregarAnexos() {
                             </small>
                         </div>
                         <div class="btn-group-vertical btn-group-sm">
-                            <a href="/anexos/visualizar/${anexo.id}" target="_blank" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-eye"></i> Visualizar
-                            </a>
+                            <!-- Visualizar - só para arquivos visíveis no navegador -->
+                            ${['pdf', 'png', 'jpg', 'jpeg', 'gif', 'txt'].includes(ext) ? 
+                                `<a href="/anexos/visualizar/${anexo.id}" target="_blank" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-eye"></i> Visualizar
+                                </a>` : 
+                                `<button class="btn btn-outline-secondary btn-sm" disabled>
+                                    <i class="fas fa-eye-slash"></i> Visualizar
+                                </button>`
+                            }
+                            <!-- Download - sempre disponível -->
                             <a href="/anexos/download/${anexo.id}" class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-download"></i> Baixar
                             </a>
+                            <!-- Excluir -->
                             <button onclick="deletarAnexo(${anexo.id})" class="btn btn-outline-danger btn-sm">
                                 <i class="fas fa-trash"></i> Excluir
                             </button>
