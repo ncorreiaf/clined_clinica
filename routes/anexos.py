@@ -3,18 +3,25 @@ Rotas para Anexos de Prontuários
 Gerencia upload, listagem e download de arquivos
 """
 
-from flask import Blueprint, request, redirect, url_for, flash, send_file, jsonify
+from flask import Blueprint, request, redirect, url_for, flash, send_file, jsonify, Response
 from werkzeug.utils import secure_filename
 from models.models import db, Paciente, AnexoProntuario
 from utils.auth_helpers import agendamento_required
 import os
 from datetime import datetime
+import mimetypes
 
 anexos_bp = Blueprint('anexos', __name__)
 
 UPLOAD_FOLDER = 'uploads/anexos'
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'txt', 'zip'}
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
+
+# Configurar mimetypes para garantir detecção correta
+mimetypes.add_type('application/pdf', '.pdf')
+mimetypes.add_type('image/jpeg', '.jpg')
+mimetypes.add_type('image/jpeg', '.jpeg')
+mimetypes.add_type('image/png', '.png')
 
 def allowed_file(filename):
     """Verifica se a extensão do arquivo é permitida"""
@@ -89,12 +96,25 @@ def upload_anexo(paciente_id):
         # Salvar arquivo
         arquivo.save(caminho_completo)
 
+        # Determinar mimetype correto
+        mimetype, _ = mimetypes.guess_type(nome_original)
+        if not mimetype:
+            # Fallback para tipos comuns
+            if nome_original.lower().endswith('.pdf'):
+                mimetype = 'application/pdf'
+            elif nome_original.lower().endswith(('.png', '.jpg', '.jpeg')):
+                mimetype = f'image/{nome_original.split(".")[-1].lower()}'
+                if mimetype == 'image/jpg':
+                    mimetype = 'image/jpeg'
+            else:
+                mimetype = arquivo.content_type or 'application/octet-stream'
+
         # Criar registro no banco
         anexo = AnexoProntuario(
             paciente_id=paciente_id,
             nome_arquivo=nome_arquivo,
             nome_original=nome_original,
-            tipo_arquivo=arquivo.content_type,
+            tipo_arquivo=mimetype,
             tamanho=file_size,
             descricao=request.form.get('descricao', ''),
             usuario_upload=request.form.get('usuario', 'Sistema')
@@ -130,10 +150,26 @@ def visualizar_anexo(anexo_id):
             flash('Arquivo não encontrado no servidor', 'error')
             return redirect(request.referrer or url_for('prontuario.lista_pacientes'))
 
-        return send_file(
-            caminho_arquivo,
-            mimetype=anexo.tipo_arquivo
-        )
+        # Detectar mimetype do arquivo real
+        mimetype, encoding = mimetypes.guess_type(anexo.nome_original)
+        if not mimetype:
+            mimetype = anexo.tipo_arquivo or 'application/octet-stream'
+
+        # Abrir o arquivo em modo binário
+        with open(caminho_arquivo, 'rb') as f:
+            file_data = f.read()
+
+        # Criar resposta com headers específicos para visualização
+        response = Response(file_data, mimetype=mimetype)
+        
+        # Adicionar headers para cache e segurança
+        response.headers['Content-Disposition'] = f'inline; filename="{anexo.nome_original}"'
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        
+        return response
 
     except Exception as e:
         flash(f'Erro ao visualizar arquivo: {str(e)}', 'error')
@@ -151,10 +187,12 @@ def download_anexo(anexo_id):
             flash('Arquivo não encontrado no servidor', 'error')
             return redirect(request.referrer or url_for('prontuario.lista_pacientes'))
 
+        # Usar send_file com as_attachment=True para forçar download
         return send_file(
             caminho_arquivo,
             as_attachment=True,
-            download_name=anexo.nome_original
+            download_name=anexo.nome_original,
+            mimetype=anexo.tipo_arquivo or 'application/octet-stream'
         )
 
     except Exception as e:
