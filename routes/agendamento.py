@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from models.models import db, Agendamento, Paciente, Profissional, SolicitacaoExame
 from config import Config
 from datetime import datetime
-from utils.auth_helpers import login_required
+from utils.auth_helpers import login_required, agendamento_required
 
 # Criação do Blueprint para agendamentos
 agendamento_bp = Blueprint('agendamento', __name__)
@@ -51,21 +51,13 @@ def horarios_disponiveis():
         horario = ag.data_agendamento.strftime('%H:%M')
         horarios_ocupados.add(horario)
 
-    # Obter data/hora atual
-    agora = datetime.now()
-
     # Criar lista de horários com disponibilidade
     resultado = []
     for horario in horarios_possiveis:
-        hora_minuto = datetime.strptime(f"{data_str} {horario}", '%Y-%m-%d %H:%M')
-
-        # Horário já passou?
-        ja_passou = hora_minuto <= agora
-
         resultado.append({
             'horario': horario,
-            'disponivel': horario not in horarios_ocupados and not ja_passou,
-            'motivo': 'Horário já passou' if ja_passou else ('Ocupado' if horario in horarios_ocupados else '')
+            'disponivel': horario not in horarios_ocupados,
+            'motivo': 'Ocupado' if horario in horarios_ocupados else ''
         })
 
     return jsonify({'horarios': resultado})
@@ -126,11 +118,6 @@ def agendar():
             print(f"CPF: {cpf_paciente if cpf_paciente else '(não informado)'}")
             print(f"Telefone: {telefone}")
             print(f"Email: {email if email else '(não informado)'}")
-
-            # Validação: não permitir agendamento em horário que já passou
-            if data_agendamento <= datetime.now():
-                flash('Não é possível agendar para um horário que já passou!', 'error')
-                return redirect(url_for('agendamento.agendar'))
 
             # Validação: verificar se já existe agendamento para o mesmo serviço no mesmo horário
             agendamento_existente = Agendamento.query.filter(
@@ -319,7 +306,7 @@ def fila_espera():
     return render_template('agendamento/fila_espera.html', agendamentos=agendamentos_hoje)
 
 @agendamento_bp.route('/checkin/<int:agendamento_id>')
-@login_required
+@agendamento_required
 def checkin(agendamento_id):
     """
     Rota para realizar check-in do paciente
@@ -340,7 +327,7 @@ def checkin(agendamento_id):
     return redirect(url_for('agendamento.fila_espera'))
 
 @agendamento_bp.route('/atualizar-status/<int:agendamento_id>/<status>')
-@login_required
+@agendamento_required
 def atualizar_status(agendamento_id, status):
     """
     Rota para atualizar status do agendamento
