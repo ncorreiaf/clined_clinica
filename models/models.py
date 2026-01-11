@@ -335,16 +335,18 @@ class AlertaAutomatico(db.Model):
 class AnexoProntuario(db.Model):
     """
     Modelo para anexos de arquivos nos prontuários
+    Arquivos são armazenados diretamente no banco de dados como binário
     """
     __tablename__ = 'anexos_prontuario'
 
     id = db.Column(db.Integer, primary_key=True)
     paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'), nullable=False)
     prontuario_id = db.Column(db.Integer, db.ForeignKey('prontuarios.id'))
-    nome_arquivo = db.Column(db.String(255), nullable=False)
+    nome_arquivo = db.Column(db.String(255))  # mantido por compatibilidade, mas não mais usado para caminho
     nome_original = db.Column(db.String(255), nullable=False)
     tipo_arquivo = db.Column(db.String(100))  # application/pdf, image/jpeg, etc
     tamanho = db.Column(db.Integer)  # tamanho em bytes
+    arquivo_binario = db.Column(db.LargeBinary)  # conteúdo do arquivo em binário
     descricao = db.Column(db.Text)
     data_upload = db.Column(db.DateTime, default=datetime.now)
     usuario_upload = db.Column(db.String(100))  # quem fez o upload
