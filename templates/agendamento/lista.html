@@ -163,6 +163,17 @@
                                            class="btn btn-success btn-sm" target="_blank">
                                             <i class="fas fa-receipt me-1"></i>Recibo
                                         </a>
+
+                                        {% if agendamento.status in ['agendado', 'em_espera'] %}
+                                        <form method="POST"
+                                              action="{{ url_for('agendamento.excluir_agendamento', agendamento_id=agendamento.id) }}"
+                                              style="display: inline;"
+                                              onsubmit="return confirm('Tem certeza que deseja EXCLUIR este agendamento?\n\nPaciente: {{ paciente.nome }}\nServiço: {{ agendamento.servico }}\nData/Hora: {{ agendamento.data_agendamento.strftime('%d/%m/%Y às %H:%M') }}\n\nEsta ação não pode ser desfeita e o horário ficará disponível novamente.');">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-trash me-1"></i>Excluir
+                                            </button>
+                                        </form>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
