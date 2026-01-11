@@ -583,13 +583,8 @@ function inicializarFormatacaoCampos() {
 // FUNÇÕES DE AGENDAMENTO
 // =============================================
 function inicializarAgendamento() {
-    // Configurar data mínima como hoje
     const dataSelecionada = document.getElementById('data_selecionada');
     if (dataSelecionada) {
-        const hoje = new Date();
-        const dataMinima = hoje.toISOString().split('T')[0];
-        dataSelecionada.min = dataMinima;
-
         // Carregar horários quando data ou serviço mudarem
         dataSelecionada.addEventListener('change', carregarHorarios);
         document.getElementById('servico').addEventListener('change', carregarHorarios);
