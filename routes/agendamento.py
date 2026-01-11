@@ -351,13 +351,49 @@ def atualizar_status(agendamento_id, status):
     try:
         agendamento = Agendamento.query.get_or_404(agendamento_id)
         agendamento.status = status
-        
+
         db.session.commit()
         flash(f'Status atualizado para: {status}', 'success')
-        
+
     except Exception as e:
         flash(f'Erro ao atualizar status: {str(e)}', 'error')
         db.session.rollback()
-    
+
     return redirect(url_for('agendamento.fila_espera'))
+
+@agendamento_bp.route('/excluir/<int:agendamento_id>', methods=['POST'])
+@login_required
+def excluir_agendamento(agendamento_id):
+    """
+    Rota para excluir um agendamento quando o cliente desiste
+    Remove completamente o agendamento e libera o horário
+    Bloqueia exclusão se houver prontuário vinculado
+    """
+    try:
+        agendamento = Agendamento.query.get_or_404(agendamento_id)
+
+        # Verificar se há prontuário vinculado
+        from models.models import Prontuario
+        prontuario_vinculado = Prontuario.query.filter_by(agendamento_id=agendamento_id).first()
+
+        if prontuario_vinculado:
+            flash('Não é possível excluir este agendamento pois já possui prontuário vinculado!', 'error')
+            return redirect(url_for('agendamento.lista_agendamentos'))
+
+        # Salvar informações para a mensagem
+        paciente_nome = agendamento.paciente_ref.nome
+        data_hora = agendamento.data_agendamento.strftime('%d/%m/%Y às %H:%M')
+        servico = agendamento.servico
+
+        # Excluir o agendamento
+        db.session.delete(agendamento)
+        db.session.commit()
+
+        flash(f'Agendamento de {paciente_nome} ({servico}) em {data_hora} foi excluído com sucesso. O horário está disponível novamente.', 'success')
+
+    except Exception as e:
+        flash(f'Erro ao excluir agendamento: {str(e)}', 'error')
+        db.session.rollback()
+
+    return redirect(url_for('agendamento.lista_agendamentos'))
 
