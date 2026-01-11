@@ -118,6 +118,27 @@ def upload_anexo(paciente_id):
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@anexos_bp.route('/visualizar/<int:anexo_id>')
+@agendamento_required
+def visualizar_anexo(anexo_id):
+    """Visualiza um arquivo anexo no navegador"""
+    try:
+        anexo = AnexoProntuario.query.get_or_404(anexo_id)
+        caminho_arquivo = os.path.join(UPLOAD_FOLDER, anexo.nome_arquivo)
+
+        if not os.path.exists(caminho_arquivo):
+            flash('Arquivo não encontrado no servidor', 'error')
+            return redirect(request.referrer or url_for('prontuario.lista_pacientes'))
+
+        return send_file(
+            caminho_arquivo,
+            mimetype=anexo.tipo_arquivo
+        )
+
+    except Exception as e:
+        flash(f'Erro ao visualizar arquivo: {str(e)}', 'error')
+        return redirect(request.referrer or url_for('prontuario.lista_pacientes'))
+
 @anexos_bp.route('/download/<int:anexo_id>')
 @agendamento_required
 def download_anexo(anexo_id):
