@@ -291,19 +291,34 @@ def fila_espera():
     """
     Rota para gerenciar a fila de espera
     Mostra pacientes em diferentes status de atendimento
+    Permite filtrar por período de datas
     """
-    # Busca agendamentos do dia atual com diferentes status
+    # Obter parâmetros de filtro (padrão: hoje)
     hoje = datetime.now().date()
-    
-    agendamentos_hoje = db.session.query(Agendamento, Paciente, Profissional).join(
+    data_inicio_str = request.args.get('data_inicio', hoje.strftime('%Y-%m-%d'))
+    data_fim_str = request.args.get('data_fim', hoje.strftime('%Y-%m-%d'))
+
+    try:
+        data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
+        data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
+    except ValueError:
+        data_inicio = hoje
+        data_fim = hoje
+
+    # Busca agendamentos no período especificado
+    agendamentos_periodo = db.session.query(Agendamento, Paciente, Profissional).join(
         Paciente, Agendamento.paciente_id == Paciente.id
     ).join(
         Profissional, Agendamento.profissional_id == Profissional.id
     ).filter(
-        db.func.date(Agendamento.data_agendamento) == hoje
+        db.func.date(Agendamento.data_agendamento) >= data_inicio,
+        db.func.date(Agendamento.data_agendamento) <= data_fim
     ).order_by(Agendamento.data_agendamento).all()
-    
-    return render_template('agendamento/fila_espera.html', agendamentos=agendamentos_hoje)
+
+    return render_template('agendamento/fila_espera.html',
+                         agendamentos=agendamentos_periodo,
+                         data_inicio=data_inicio_str,
+                         data_fim=data_fim_str)
 
 @agendamento_bp.route('/checkin/<int:agendamento_id>')
 @agendamento_required
