@@ -9,7 +9,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>
                 <i class="fas fa-users text-warning me-2"></i>
-                Fila de Espera - Hoje
+                Fila de Espera
             </h2>
             <div class="btn-group">
                 <a href="{{ url_for('agendamento.lista_agendamentos') }}" class="btn btn-outline-primary">
@@ -19,6 +19,61 @@
                     <i class="fas fa-sync me-1"></i>Atualizar
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtro de Período -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('agendamento.fila_espera') }}" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="data_inicio" class="form-label">
+                            <i class="fas fa-calendar-alt me-1"></i>Data Início
+                        </label>
+                        <input type="date" class="form-control" id="data_inicio" name="data_inicio"
+                               value="{{ data_inicio }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="data_fim" class="form-label">
+                            <i class="fas fa-calendar-alt me-1"></i>Data Fim
+                        </label>
+                        <input type="date" class="form-control" id="data_fim" name="data_fim"
+                               value="{{ data_fim }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="fas fa-filter me-1"></i>Filtrar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="filtrarHoje()">
+                                <i class="fas fa-calendar-day me-1"></i>Hoje
+                            </button>
+                            <button type="button" class="btn btn-outline-info" onclick="filtrarSemana()">
+                                <i class="fas fa-calendar-week me-1"></i>Esta Semana
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informação do Período -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-info mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Período:</strong>
+            {% if data_inicio == data_fim %}
+                {{ data_inicio|replace('-', '/')|reverse|replace('/', '-', 2)|reverse }}
+            {% else %}
+                {{ data_inicio|replace('-', '/')|reverse|replace('/', '-', 2)|reverse }} até {{ data_fim|replace('-', '/')|reverse|replace('/', '-', 2)|reverse }}
+            {% endif %}
+            | <strong>Total de agendamentos:</strong> {{ agendamentos|length }}
         </div>
     </div>
 </div>
@@ -100,13 +155,14 @@
                             <div>
                                 <h6 class="mb-1">{{ paciente.nome }}</h6>
                                 <p class="mb-1">
-                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - 
+                                    <span class="badge bg-secondary">{{ agendamento.data_agendamento.strftime('%d/%m/%Y') }}</span>
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> -
                                     {{ profissional.nome }}
                                 </p>
                                 <small class="text-muted">{{ agendamento.servico }}</small>
                             </div>
                             <div class="btn-group-vertical btn-group-sm">
-                                <a href="{{ url_for('agendamento.checkin', agendamento_id=agendamento.id) }}" 
+                                <a href="{{ url_for('agendamento.checkin', agendamento_id=agendamento.id) }}"
                                    class="btn btn-success">
                                     <i class="fas fa-check me-1"></i>Check-in
                                 </a>
@@ -144,7 +200,8 @@
                             <div>
                                 <h6 class="mb-1">{{ paciente.nome }}</h6>
                                 <p class="mb-1">
-                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - 
+                                    <span class="badge bg-secondary">{{ agendamento.data_agendamento.strftime('%d/%m/%Y') }}</span>
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> -
                                     {{ profissional.nome }}
                                 </p>
                                 <small class="text-muted">
@@ -152,11 +209,11 @@
                                 </small>
                             </div>
                             <div class="btn-group-vertical btn-group-sm">
-                                <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='em_atendimento') }}" 
+                                <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='em_atendimento') }}"
                                    class="btn btn-success">
                                     <i class="fas fa-play me-1"></i>Iniciar
                                 </a>
-                                <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}" 
+                                <a href="{{ url_for('prontuario.ver_prontuario', paciente_id=paciente.id) }}"
                                    class="btn btn-info">
                                     <i class="fas fa-file-medical me-1"></i>Prontuário
                                 </a>
@@ -194,17 +251,18 @@
                             <div>
                                 <h6 class="mb-1">{{ paciente.nome }}</h6>
                                 <p class="mb-1">
-                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - 
+                                    <span class="badge bg-secondary">{{ agendamento.data_agendamento.strftime('%d/%m/%Y') }}</span>
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> -
                                     {{ profissional.nome }}
                                 </p>
                                 <small class="text-muted">{{ agendamento.servico }}</small>
                             </div>
                             <div class="btn-group-vertical btn-group-sm">
-                                <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='finalizado') }}" 
+                                <a href="{{ url_for('agendamento.atualizar_status', agendamento_id=agendamento.id, status='finalizado') }}"
                                    class="btn btn-secondary">
                                     <i class="fas fa-stop me-1"></i>Finalizar
                                 </a>
-                                <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}" 
+                                <a href="{{ url_for('prontuario.editar_prontuario', paciente_id=paciente.id) }}"
                                    class="btn btn-info">
                                     <i class="fas fa-edit me-1"></i>Prontuário
                                 </a>
@@ -242,7 +300,8 @@
                             <div>
                                 <h6 class="mb-1">{{ paciente.nome }}</h6>
                                 <p class="mb-1">
-                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> - 
+                                    <span class="badge bg-dark">{{ agendamento.data_agendamento.strftime('%d/%m/%Y') }}</span>
+                                    <strong>{{ agendamento.data_agendamento.strftime('%H:%M') }}</strong> -
                                     {{ profissional.nome }}
                                 </p>
                                 <small class="text-muted">{{ agendamento.servico }} - Finalizado</small>
@@ -252,11 +311,10 @@
                                    class="btn btn-info btn-sm">
                                     <i class="fas fa-file-medical me-1"></i>Prontuário
                                 </a>
-                                <a href="https://clined-system.onrender.com/relatorios/avaliacao-publica/{{ agendamento.id }}"
-                                   target="_blank"
-                                   class="btn btn-warning btn-sm">
+                                <button class="btn btn-warning btn-sm"
+                                        onclick="copiarLinkAvaliacao({{ agendamento.id }})">
                                     <i class="fas fa-star me-1"></i>Link NPS
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -265,7 +323,7 @@
                 {% else %}
                 <div class="p-4 text-center text-muted">
                     <i class="fas fa-inbox fa-2x mb-2"></i>
-                    <p>Nenhum atendimento finalizado hoje</p>
+                    <p>Nenhum atendimento finalizado no período</p>
                 </div>
                 {% endif %}
             </div>
@@ -274,6 +332,49 @@
 </div>
 
 <script>
+// Funções de filtro rápido
+function filtrarHoje() {
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('data_inicio').value = hoje;
+    document.getElementById('data_fim').value = hoje;
+    document.querySelector('form').submit();
+}
+
+function filtrarSemana() {
+    const hoje = new Date();
+    const primeiroDia = new Date(hoje);
+    primeiroDia.setDate(hoje.getDate() - hoje.getDay());
+    const ultimoDia = new Date(primeiroDia);
+    ultimoDia.setDate(primeiroDia.getDate() + 6);
+
+    document.getElementById('data_inicio').value = primeiroDia.toISOString().split('T')[0];
+    document.getElementById('data_fim').value = ultimoDia.toISOString().split('T')[0];
+    document.querySelector('form').submit();
+}
+
+function copiarLinkAvaliacao(agendamentoId) {
+    const link = window.location.origin + '/relatorios/avaliacao-publica/' + agendamentoId;
+
+    // Copiar para clipboard
+    navigator.clipboard.writeText(link).then(function() {
+        // Mostrar feedback visual
+        const btn = event.target.closest('button');
+        const textoOriginal = btn.innerHTML;
+
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Copiado!';
+        btn.classList.remove('btn-warning');
+        btn.classList.add('btn-success');
+
+        setTimeout(function() {
+            btn.innerHTML = textoOriginal;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+        }, 2000);
+    }).catch(function(err) {
+        alert('Erro ao copiar link: ' + err);
+    });
+}
+
 // Auto-refresh da página a cada 30 segundos
 setInterval(function() {
     // Só atualiza se não há modais abertos ou formulários sendo preenchidos
