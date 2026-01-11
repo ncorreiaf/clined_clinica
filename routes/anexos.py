@@ -58,7 +58,7 @@ def listar_anexos(paciente_id):
 @anexos_bp.route('/paciente/<int:paciente_id>/upload', methods=['POST'])
 @agendamento_required
 def upload_anexo(paciente_id):
-    """Faz upload de um arquivo anexo"""
+    """Faz upload de um arquivo anexo e salva diretamente no banco de dados"""
     try:
         # Verificar se o paciente existe
         paciente = Paciente.query.get_or_404(paciente_id)
@@ -84,17 +84,13 @@ def upload_anexo(paciente_id):
         if file_size > MAX_FILE_SIZE:
             return jsonify({'success': False, 'error': 'Arquivo muito grande (máximo 16MB)'}), 400
 
-        # Criar diretório se não existir
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        # Ler o arquivo em memória como bytes
+        arquivo_bytes = arquivo.read()
 
-        # Gerar nome único
+        # Gerar nome único para referência
         nome_original = secure_filename(arquivo.filename)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         nome_arquivo = f"{paciente_id}_{timestamp}_{nome_original}"
-        caminho_completo = os.path.join(UPLOAD_FOLDER, nome_arquivo)
-
-        # Salvar arquivo
-        arquivo.save(caminho_completo)
 
         # Determinar mimetype correto
         mimetype, _ = mimetypes.guess_type(nome_original)
@@ -109,13 +105,14 @@ def upload_anexo(paciente_id):
             else:
                 mimetype = arquivo.content_type or 'application/octet-stream'
 
-        # Criar registro no banco
+        # Criar registro no banco com o arquivo binário
         anexo = AnexoProntuario(
             paciente_id=paciente_id,
             nome_arquivo=nome_arquivo,
             nome_original=nome_original,
             tipo_arquivo=mimetype,
             tamanho=file_size,
+            arquivo_binario=arquivo_bytes,
             descricao=request.form.get('descricao', ''),
             usuario_upload=request.form.get('usuario', 'Sistema')
         )
@@ -141,34 +138,29 @@ def upload_anexo(paciente_id):
 @anexos_bp.route('/visualizar/<int:anexo_id>')
 @agendamento_required
 def visualizar_anexo(anexo_id):
-    """Visualiza um arquivo anexo no navegador"""
+    """Visualiza um arquivo anexo no navegador, recuperando do banco de dados"""
     try:
         anexo = AnexoProntuario.query.get_or_404(anexo_id)
-        caminho_arquivo = os.path.join(UPLOAD_FOLDER, anexo.nome_arquivo)
 
-        if not os.path.exists(caminho_arquivo):
-            flash('Arquivo não encontrado no servidor', 'error')
+        if not anexo.arquivo_binario:
+            flash('Arquivo não encontrado no banco de dados', 'error')
             return redirect(request.referrer or url_for('prontuario.lista_pacientes'))
 
-        # Detectar mimetype do arquivo real
+        # Detectar mimetype do arquivo
         mimetype, encoding = mimetypes.guess_type(anexo.nome_original)
         if not mimetype:
             mimetype = anexo.tipo_arquivo or 'application/octet-stream'
 
-        # Abrir o arquivo em modo binário
-        with open(caminho_arquivo, 'rb') as f:
-            file_data = f.read()
-
         # Criar resposta com headers específicos para visualização
-        response = Response(file_data, mimetype=mimetype)
-        
+        response = Response(anexo.arquivo_binario, mimetype=mimetype)
+
         # Adicionar headers para cache e segurança
         response.headers['Content-Disposition'] = f'inline; filename="{anexo.nome_original}"'
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
         response.headers['X-Content-Type-Options'] = 'nosniff'
-        
+
         return response
 
     except Exception as e:
@@ -178,22 +170,22 @@ def visualizar_anexo(anexo_id):
 @anexos_bp.route('/download/<int:anexo_id>')
 @agendamento_required
 def download_anexo(anexo_id):
-    """Baixa um arquivo anexo"""
+    """Baixa um arquivo anexo do banco de dados"""
     try:
         anexo = AnexoProntuario.query.get_or_404(anexo_id)
-        caminho_arquivo = os.path.join(UPLOAD_FOLDER, anexo.nome_arquivo)
 
-        if not os.path.exists(caminho_arquivo):
-            flash('Arquivo não encontrado no servidor', 'error')
+        if not anexo.arquivo_binario:
+            flash('Arquivo não encontrado no banco de dados', 'error')
             return redirect(request.referrer or url_for('prontuario.lista_pacientes'))
 
-        # Usar send_file com as_attachment=True para forçar download
-        return send_file(
-            caminho_arquivo,
-            as_attachment=True,
-            download_name=anexo.nome_original,
-            mimetype=anexo.tipo_arquivo or 'application/octet-stream'
-        )
+        # Criar resposta com o arquivo binário
+        response = Response(anexo.arquivo_binario, mimetype=anexo.tipo_arquivo or 'application/octet-stream')
+
+        # Forçar download ao invés de visualização
+        response.headers['Content-Disposition'] = f'attachment; filename="{anexo.nome_original}"'
+        response.headers['Content-Length'] = str(anexo.tamanho)
+
+        return response
 
     except Exception as e:
         flash(f'Erro ao baixar arquivo: {str(e)}', 'error')
@@ -202,16 +194,11 @@ def download_anexo(anexo_id):
 @anexos_bp.route('/deletar/<int:anexo_id>', methods=['POST'])
 @agendamento_required
 def deletar_anexo(anexo_id):
-    """Deleta um arquivo anexo"""
+    """Deleta um arquivo anexo do banco de dados"""
     try:
         anexo = AnexoProntuario.query.get_or_404(anexo_id)
-        caminho_arquivo = os.path.join(UPLOAD_FOLDER, anexo.nome_arquivo)
 
-        # Deletar arquivo físico
-        if os.path.exists(caminho_arquivo):
-            os.remove(caminho_arquivo)
-
-        # Deletar registro do banco
+        # Deletar registro do banco (incluindo o arquivo binário)
         db.session.delete(anexo)
         db.session.commit()
 
